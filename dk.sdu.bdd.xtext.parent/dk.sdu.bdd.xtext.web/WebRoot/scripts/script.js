@@ -54,7 +54,7 @@ let scenarioTab = document.getElementById('scenario-tab')
 let scenarioBlock = document.getElementById('blockly-editor2')
 let uml = document.getElementById("xtext-editor-diagrams")
 let umlTab = document.getElementById('uml-tab')
-let umlBlock = document.getElementById('blockly-editor3') // Might not be used ever
+let umlBlock = document.getElementById('uml-editor') // Might not be used ever
 let warningMessage = document.getElementById('warning-message')
 let originalToolbox;
 let entitiesToolboxInjected = false;
@@ -132,7 +132,7 @@ function switchEditor(e) {
 
 		if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
 		else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }
-		else if (editorId == "xtext-editor-diagrams") { b = "blockly-editor3"}
+		else if (editorId == "xtext-editor-diagrams") { b = "uml-editor"}
 		
 		console.log(editorId)
 		let editor = document.getElementById(editorId)
