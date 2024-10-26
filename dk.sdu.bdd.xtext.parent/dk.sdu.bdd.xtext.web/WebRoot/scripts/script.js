@@ -52,6 +52,9 @@ let entitiesBlock = document.getElementById('blockly-editor')
 let scenario = document.getElementById('xtext-editor-scenarios')
 let scenarioTab = document.getElementById('scenario-tab')
 let scenarioBlock = document.getElementById('blockly-editor2')
+let blockTab = document.getElementById('blocks-tab');
+let umlTab = document.getElementById('uml-tab');
+let umlContainer = document.getElementById('uml-container');
 let warningMessage = document.getElementById('warning-message')
 let originalToolbox;
 let entitiesToolboxInjected = false;
@@ -125,7 +128,8 @@ function switchEditor(e) {
 	if (e.target != currentTab) {
 		removeSelectionBorder(currentTab)
 		let editorId = e.target.dataset.editorId
-
+		// Hide UML container if switching to a different editor
+        umlContainer.style.display = "none";
 		if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
 		else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }
 
@@ -201,7 +205,10 @@ if (entitiesTab != undefined)
 	entitiesTab.onclick = switchEditor
 if (scenarioTab != undefined)
 	scenarioTab.onclick = switchEditor
-
+if (umlTab != undefined)
+	umlTab.onclick = switchToUml
+if (blockTab != undefined)
+	blockTab.onclick = switchToBlock
 setEnabled(entitiesTab);
 setSelectionBorder(entitiesTab);
 
@@ -361,6 +368,147 @@ function filterCategories(element, contents) {
 		let categories = ["Declarative Entities", "Imperative Entities"];
 		return contents.filter(item => !categories.includes(item.name));
 	}
+}
+function switchToUml() {
+    // Hide both editors and their corresponding blockly
+    document.getElementById('blockly-editor').style.display = "none";
+    // Show the UML container
+    umlContainer.style.display = "block";
+	loadUMLDiagram();
+
+}
+function loadUMLDiagram() {
+            var namespace = joint.shapes;
+            var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+            var paper = new joint.dia.Paper({
+                el: document.getElementById('uml-canvas'),
+                model: graph,
+                width: "100%",
+                height: "100%",
+                gridSize: 1,
+                drawGrid: true,
+            });
+
+            // Handle drag and drop for elements
+            const toolbox = document.getElementById('toolbox');
+            toolbox.addEventListener('dragstart', (event) => {
+                event.dataTransfer.setData('text/plain', event.target.id);
+            });
+
+            paper.el.addEventListener('dragover', (event) => {
+                event.preventDefault(); // Allow dropping
+            });
+
+            paper.el.addEventListener('drop', (event) => {
+                event.preventDefault();
+                const id = event.dataTransfer.getData('text/plain');
+                const position = paper.clientToLocalPoint(event.clientX, event.clientY);
+
+                // Create shapes based on the dragged button
+                let cell;
+                switch (id) {
+                    case 'drawCircle':
+                        cell = new namespace.standard.Circle({
+                            position: { x: position.x, y: position.y },
+                            size: { width: 80, height: 80 },
+                            attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
+                        });
+                        break;
+                    case 'drawSquare':
+                        cell = new namespace.standard.Triangle({
+                            position: { x: position.x, y: position.y },
+                            size: { width: 80, height: 80 },
+                            attrs: { rect: { fill: '#007bff' }, text: { text: 'Square', fill: 'white' } }
+                        });
+                        break;
+                    case 'drawTriangle':
+                        cell = new namespace.standard.Polygon({
+                            position: { x: position.x, y: position.y },
+                            size: { width: 80, height: 80 },
+                            attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Triangle', fill: 'white' } }
+                        });
+                        break;
+                    case 'drawArrow':
+                        // Placeholder for an arrow, you can create a link instead
+                        break;
+                }
+
+                if (cell) {
+                    graph.addCell(cell);
+                }
+				exportDiagramAsJSON(graph);
+            });
+			// Variables for connecting elements
+			let sourceElement = null;
+
+			// Handle double-click to select the first element
+			paper.on('cell:pointerdblclick', function(cellView, event) {
+			    if (!sourceElement) {
+			        event.preventDefault(); // Prevent default context menu
+			        sourceElement = cellView.model; // Store the clicked element as source
+
+			        // Add highlighter to the selected element
+			        joint.highlighters.mask.add(cellView, { selector: 'root' }, 'my-element-highlight', {
+			            deep: true,
+			            attrs: {
+			                'stroke': '#FF4365',
+			                'stroke-width': 3
+			            }
+			        });
+			        linkToTheSecondElement(sourceElement);
+			    }
+			});
+
+			// Function to handle linking to the second element
+			function linkToTheSecondElement(selectedElement) {
+			    // Handle double-click on the second cell to create a link
+			    paper.on('cell:pointerdblclick', function(cellView) {
+			        if (sourceElement) { // Check if sourceElement is still valid
+			            // Ensure the target is not the same as the source
+			            if (cellView.model !== sourceElement) {
+			                // Create the link
+			                var link = new joint.shapes.standard.Link();
+			                link.source(selectedElement);
+			                link.target(cellView.model);
+			                link.addTo(graph);
+
+			                // Remove the highlighter from the selected element after connecting
+			                const sourceView = paper.findViewByModel(sourceElement);
+			                if (sourceView) {
+								joint.dia.HighlighterView.remove(sourceView, 'my-element-highlight');
+			                }
+
+			                // Reset sourceElement
+			                sourceElement = null;
+			            }
+						else{
+							const sourceView = paper.findViewByModel(sourceElement);
+			                if (sourceView) {
+								joint.dia.HighlighterView.remove(sourceView, 'my-element-highlight');
+			                }
+							sourceElement = null;
+							
+						}
+			        }
+			        // Remove the listener after creating the link to avoid multiple links
+			        paper.off('cell:pointerdblclick', arguments.callee);
+					exportDiagramAsJSON(graph);
+			    });
+			}
+
+}
+function exportDiagramAsJSON(graph) {
+    const json = graph.toJSON();
+    const jsonString = JSON.stringify(json, null, 2); // Pretty-print with indentation
+    console.log(jsonString); // Log the JSON string to console (or save as needed)
+    return jsonString; 
+}
+function switchToBlock() {
+    // Hide both editors and their corresponding blockly
+	document.getElementById('blockly-editor').style.display = "block";
+    // Show the UML container
+    umlContainer.style.display = "none";
 }
 
 function saveScenario() {

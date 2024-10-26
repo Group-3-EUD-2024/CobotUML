@@ -7,12 +7,14 @@ require.config({
   paths: {
     "jquery": "webjars/jquery/3.5.1/jquery.min",
     "ace/ext/language_tools": "webjars/ace/1.3.3/src/ext-language_tools",
-    "xtext/xtext-ace": "xtext/2.25.0/xtext-ace"
-  }
+    "xtext/xtext-ace": "xtext/2.25.0/xtext-ace",
+	"joint": "https://cdn.jsdelivr.net/npm/@joint/core@4.0.1/dist/joint",  // Path to JointJS  
+}
 });
 
 let editors
 let currentEditor;
+let joint
 
 function getCurrentAceEditor() {
   /*
@@ -66,6 +68,9 @@ require(["webjars/ace/1.3.3/src/ace"], function() {
       $('#file-input').trigger('click')
       e.preventDefault();
     });
-  })
+  }
+  )
+  require(["joint"], function(joiner) {
+	joint = joiner
+    })
 });
-
