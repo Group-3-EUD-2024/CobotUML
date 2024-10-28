@@ -133,7 +133,7 @@ function switchEditor(e) {
         umlContainer.style.display = "none";
 		if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
 		else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }
-		else if (editorId == "xtext-editor-diagrams") { b = "blockly-editor3"}
+		else if (editorId == "xtext-editor-diagrams") { b = "uml-editor"}
 		
 		console.log(editorId)
 		let editor = document.getElementById(editorId)
