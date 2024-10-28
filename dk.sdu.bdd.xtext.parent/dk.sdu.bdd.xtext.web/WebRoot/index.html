@@ -47,16 +47,32 @@
 			<div id="uml-canvas"></div>
 			<div id="toolbox">
 			    <div class="tool-container">
-			        <button class="tool" draggable="true" id="drawCircle">🟠 Circle</button>
-			        <button class="tool" draggable="true" id="drawSquare">🟦 Square</button>
-			        <button class="tool" draggable="true" id="drawTriangle">🔺 Triangle</button>
-			        <button class="tool" draggable="true" id="drawArrow">➡️ Arrow</button>
+			        <button type="button" class="tool" draggable="true" id="drawCircle">Circle</button>
+			        <button type="button" class="tool" draggable="true" id="drawSquare">Square</button>
+					<div class="mouse-options">
+						<h4>Mouse options</h4>        
+						<button class="tool" draggable="false" id="movePaperMouse">Pan selector</button>
+						<button class="tool" draggable="false" id="defaultMouse">Arrow selector</button>
+					</div>
 			    </div>
 			    <div class="style-container">
-			        <label for="colorPicker">Color:</label>
-			        <input type="color" id="colorPicker" value="#000000">
-			        <label for="brushSize">Brush Size:</label>
-			        <input type="range" id="brushSize" min="1" max="100" value="5">
+					<h4>Selected Element settings</h4>        
+			        <label for="fillColorPicker">Fill Color:</label>
+			        <input type="color" id="fillColorPicker" value="#000000">
+			        <label for="strokeColorPicker">Stroke Color:</label>
+			        <input type="color" id="strokeColorPicker" value="#000000">
+			        <label for="textInput">Text:</label>
+					<textarea id="textAreaInput" placeholder="Enter text here"></textarea>
+					<label for="textColorPicker">Text Color:</label>
+				    <input type="color" id="textColorPicker" value="#000000">
+			        <label for="strokeWidth">Stroke Width:</label>
+			        <input type="range" id="strokeWidth" min="1" max="10" value="2">
+			        <label for="widthSize">Width:</label>
+			        <input type="range" id="widthSize" min="20" max="1000" value="80">
+			        <label for="heightSize">Height:</label>
+			        <input type="range" id="heightSize" min="20" max="1000" value="80">
+			        <label for="rotation">Rotation:</label>
+			        <input type="range" id="rotation" min="0" max="360" value="0">
 			    </div>
 			</div>
 		</div>
