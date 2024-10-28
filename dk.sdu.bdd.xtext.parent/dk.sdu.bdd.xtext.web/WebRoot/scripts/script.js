@@ -52,9 +52,9 @@ let entitiesBlock = document.getElementById('blockly-editor')
 let scenario = document.getElementById('xtext-editor-scenarios')
 let scenarioTab = document.getElementById('scenario-tab')
 let scenarioBlock = document.getElementById('blockly-editor2')
-let uml = document.getElementById("xtext-editor-diagrams")
-let umlTab = document.getElementById('uml-tab')
-let umlBlock = document.getElementById('blockly-editor3') // Might not be used ever
+let blockTab = document.getElementById('blocks-tab');
+let umlTab = document.getElementById('uml-tab');
+let umlContainer = document.getElementById('uml-container');
 let warningMessage = document.getElementById('warning-message')
 let originalToolbox;
 let entitiesToolboxInjected = false;
@@ -129,7 +129,8 @@ function switchEditor(e) {
 	if (e.target != currentTab) {
 		removeSelectionBorder(currentTab)
 		let editorId = e.target.dataset.editorId
-
+		// Hide UML container if switching to a different editor
+        umlContainer.style.display = "none";
 		if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
 		else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }
 		else if (editorId == "xtext-editor-diagrams") { b = "blockly-editor3"}
@@ -137,6 +138,7 @@ function switchEditor(e) {
 		console.log(editorId)
 		let editor = document.getElementById(editorId)
 		let blockly = document.getElementById(b)
+		blockly.style.display = "block";
 		displayEditor(currentEditor, editor, currentBlockly, blockly)
 		if (editorId == "xtext-editor-diagrams") {
 			runExampleUml();
@@ -213,8 +215,9 @@ if (entitiesTab != undefined)
 if (scenarioTab != undefined)
 	scenarioTab.onclick = switchEditor
 if (umlTab != undefined)
-	umlTab.onclick = switchEditor
-
+	umlTab.onclick = switchToUml
+if (blockTab != undefined)
+	blockTab.onclick = switchToBlock
 setEnabled(entitiesTab);
 setSelectionBorder(entitiesTab);
 
@@ -375,6 +378,321 @@ function filterCategories(element, contents) {
 		let categories = ["Declarative Entities", "Imperative Entities"];
 		return contents.filter(item => !categories.includes(item.name));
 	}
+}
+function switchToUml() {
+    // Hide both editors and their corresponding blockly
+    document.getElementById('blockly-editor').style.display = "none";
+	document.getElementById('blockly-editor2').style.display = "none";
+    // Show the UML container
+    umlContainer.style.display = "block";
+	loadUMLDiagram();
+
+}
+let graph = null;
+function enableCanvasPanning(paper) {
+    let lastMousePosition = { x: 0, y: 0 };
+	const panningMouse = document.getElementById("movePaperMouse");
+	const defaultMouse = document.getElementById("defaultMouse");
+	let PanningMouseIsSelected = false;
+	let isPanning = false;
+	panningMouse.addEventListener('click',()=> {
+		PanningMouseIsSelected = true;
+		panningMouse.classList.add("selected");
+		defaultMouse.classList.remove("selected");
+		
+	})
+	defaultMouse.addEventListener('click',()=> {
+		PanningMouseIsSelected = false;
+		panningMouse.classList.remove("selected");
+		defaultMouse.classList.add("selected");
+	})
+	paper.el.addEventListener('mousedown', (event) => {
+		if(PanningMouseIsSelected){
+			isPanning = true;
+			lastMousePosition = { x: event.clientX, y: event.clientY };
+	        paper.el.style.cursor = 'grab'; 
+		}
+    });
+    // Update canvas position as the mouse moves
+    paper.el.addEventListener('mousemove', (event) => {
+        if (isPanning) {
+            const dx = event.clientX - lastMousePosition.x;
+            const dy = event.clientY - lastMousePosition.y;
+            // Move the paper's viewport
+            paper.translate(paper.translate().tx + dx, paper.translate().ty + dy);
+            // Update last position for the next move
+            lastMousePosition = { x: event.clientX, y: event.clientY };
+        }
+    });	
+    // Stop panning when the mouse is released
+    document.addEventListener('mouseup', () => {
+        isPanning = false;
+        paper.el.style.cursor = 'default'; // Restore cursor
+    });
+}
+function enableCanvasZoom(paper) {
+    let currentScale = 1;
+    const minScale = 0.2; 
+    const maxScale = 2.0; 
+    const zoomStep = 0.1;
+
+    paper.el.addEventListener('wheel', (event) => {
+        event.preventDefault();
+        // Determine the zoom direction
+        if (event.deltaY < 0 && currentScale < maxScale) {
+            // Zoom in
+            currentScale += zoomStep;
+        } else if (event.deltaY > 0 && currentScale > minScale) {
+            // Zoom out
+            currentScale -= zoomStep;
+        }
+        paper.scale(currentScale);
+    });
+}
+function loadUMLDiagram() {
+	if (graph) {
+        return; 
+    }
+        var namespace = joint.shapes;
+        graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+        var paper = new joint.dia.Paper({
+            el: document.getElementById('uml-canvas'),
+            model: graph,
+            width: "100%",
+            height: "100%",
+            gridSize: 1,
+            drawGrid: true,
+        });
+		enableCanvasPanning(paper);
+		enableCanvasZoom(paper);
+
+        // Handle drag and drop for elements
+        const toolbox = document.getElementById('toolbox');
+        toolbox.addEventListener('dragstart', (event) => {
+            event.dataTransfer.setData('text/plain', event.target.id);
+        });
+
+        paper.el.addEventListener('dragover', (event) => {
+            event.preventDefault(); // Allow dropping
+        });
+
+        paper.el.addEventListener('drop', (event) => {
+            event.preventDefault();
+            const id = event.dataTransfer.getData('text/plain');
+            const position = paper.clientToLocalPoint(event.clientX, event.clientY);
+
+            // Create shapes based on the dragged button
+            let cell;
+            switch (id) {
+                case 'drawCircle':
+                    cell = new namespace.standard.Circle({
+                        position: { x: position.x, y: position.y },
+                        size: { width: 80, height: 80 },
+                        attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
+                    });
+                    break;
+                case 'drawSquare':
+                    cell = new namespace.standard.Polygon({
+                        position: { x: position.x, y: position.y },
+                        size: { width: 80, height: 80 },
+                        attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Triangle', fill: 'white' } }
+                    });
+                    break;
+            }
+
+            if (cell) {
+                graph.addCell(cell);
+            }
+			exportDiagramAsJSON(graph);
+        });
+		let sourceElement = null; 
+		paper.on('element:pointerclick', function(cellView) {
+	        sourceElement = cellView.model;
+	        editFigure(sourceElement);
+			exportDiagramAsJSON(graph);
+			paper.off('cell:pointerclick', arguments.callee);
+		});
+		document.addEventListener('contextmenu',(event)=> {
+			event.preventDefault();
+		})
+		// Handle right-click to open context menu
+		paper.on('cell:contextmenu', function(cellView, event) {
+		    event.preventDefault();
+			const existingMenu = document.getElementById('contextMenu');
+		    if (existingMenu) {
+		        existingMenu.remove();
+		    }
+		    // Store the clicked cell as the source element for potential linking
+		    sourceElement = cellView.model;
+		    // Display a custom context menu at the mouse position
+		    const menu = document.createElement('div');
+		    menu.id = 'contextMenu';
+		    menu.style.position = 'absolute';
+		    menu.style.left = `${event.clientX}px`;
+		    menu.style.top = `${event.clientY}px`;
+		    menu.style.backgroundColor = '#fff';
+		    menu.style.border = '1px solid #ccc';
+		    menu.style.padding = '10px';
+		    menu.style.zIndex = '1000';
+		    // Add "Connect" option to the menu
+		    const connectOption = document.createElement('button');
+			connectOption.setAttribute('type','button');
+		    connectOption.textContent = 'Connect';
+		    connectOption.style.cursor = 'pointer';
+			const removeOption = document.createElement('button');
+			removeOption.setAttribute('type','button');
+			removeOption.textContent = 'Remove';
+		    removeOption.style.cursor = 'pointer';
+			menu.appendChild(connectOption);
+			menu.appendChild(removeOption);
+		    document.body.appendChild(menu);
+		    connectOption.onclick = () => {
+		        document.body.removeChild(menu); // Remove the context menu
+		        startLinking(sourceElement);
+		    };
+			removeOption.onclick = () => {
+		        sourceElement.remove();
+				exportDiagramAsJSON(graph);
+		    };
+		    document.addEventListener('click', function removeMenu() {
+		        if (menu.parentNode) {
+		            document.body.removeChild(menu);
+		        }
+		        document.removeEventListener('click', removeMenu);
+		    });
+		});
+		// Linkto the second element after "Connect" option is selected
+		function startLinking(selectedElement) {
+		    // Highlight the source element to show linking is active
+		    const sourceView = paper.findViewByModel(selectedElement);
+		    joint.highlighters.mask.add(sourceView, { selector: 'root' }, 'my-element-highlight', {
+		        deep: true,
+		        attrs: {
+		            'stroke': '#FF4365',
+		            'stroke-width': 3
+		        }
+		    });
+		    // Listen for the next click to create a link
+		    paper.once('cell:pointerclick', function(targetView) {
+		        if (targetView.model !== selectedElement) {
+		            // Create and add the link between source and target elements
+		            const link = new joint.shapes.standard.Link();
+		            link.source(selectedElement);
+		            link.target(targetView.model);
+		            link.addTo(graph);
+		            // Remove highlighting from the source element
+		            joint.dia.HighlighterView.remove(sourceView, 'my-element-highlight');
+		            sourceElement = null; // Reset the source element
+		        } else {
+		            // Remove highlighting if the same element is clicked again
+		            joint.dia.HighlighterView.remove(sourceView, 'my-element-highlight');
+		            sourceElement = null;
+		        }
+		        exportDiagramAsJSON(graph); // Export the updated diagram
+				paper.off('cell:pointerclick', arguments.callee);
+		    });
+		}
+	function editFigure(selectedElement){
+		let colorPicker = document.getElementById('fillColorPicker');
+		let strokeColorPicker = document.getElementById('strokeColorPicker');
+		let textAreaInput = document.getElementById('textAreaInput');  
+		let textColorPicker = document.getElementById('textColorPicker');
+		let strokeWidth = document.getElementById('strokeWidth');
+		let widthSize = document.getElementById('widthSize');
+		let heightSize = document.getElementById('heightSize');
+		let rotation = document.getElementById('rotation');
+		// Remove previous listeners by cloning each input
+	    function removeListeners(input) {
+	        const newInput = input.cloneNode(true);
+	        input.replaceWith(newInput);
+	        return newInput;
+	    }
+	    // Replace each input to clear previous listeners
+	    colorPicker = removeListeners(colorPicker);
+	    strokeColorPicker = removeListeners(strokeColorPicker);
+	    textAreaInput = removeListeners(textAreaInput);
+		textColorPicker = removeListeners(textColorPicker);
+	    strokeWidth = removeListeners(strokeWidth);
+	    widthSize = removeListeners(widthSize);
+	    heightSize = removeListeners(heightSize);
+	    rotation = removeListeners(rotation);
+		
+		colorPicker.value = selectedElement.attr('body/fill') || '#000000';
+		strokeColorPicker.value = selectedElement.attr('body/stroke') || '#000000';
+		textAreaInput.value = selectedElement.attr('label/text') || '';
+		textColorPicker.value = selectedElement.attr('label/fill') || '#000000';
+		strokeWidth.value = selectedElement.attr('body/strokeWidth') || 2;
+		widthSize.value = selectedElement.size().width || 80;
+		heightSize.value = selectedElement.size().height || 80;
+		rotation.value = selectedElement.angle() || 0;
+		colorPicker.addEventListener('input',function (event) {
+			if (selectedElement) {
+			    selectedElement.attr('body/fill', event.target.value);
+    		}
+		})
+		strokeColorPicker.addEventListener('input',function (event) {
+			if (selectedElement) {
+			    selectedElement.attr('body/stroke', event.target.value);
+    		}
+		})
+		textAreaInput.addEventListener('input',function (event) {
+			if (selectedElement) {
+				selectedElement.attr({
+				    label: {
+				        text: event.target.value,
+				        'font-size': 12,
+				        'text-anchor': 'middle',
+				        'text-vertical-anchor': 'middle',
+				        'ref-y': 0.5,
+				        'y-alignment': 'middle',
+				        'white-space': 'pre-wrap'
+				    }
+				});
+			}
+			exportDiagramAsJSON(graph);
+		})
+		textColorPicker.addEventListener('input', (event) => {
+			if (selectedElement) {
+				selectedElement.attr('label/fill', event.target.value);
+			}
+	    });
+		strokeWidth.addEventListener('input', function(event) {
+		    if (selectedElement) {
+		        selectedElement.attr('body/strokeWidth', event.target.value);
+		    }
+		});
+		widthSize.addEventListener('input', function(event) {
+		    if (selectedElement) {
+		        selectedElement.resize(parseInt(event.target.value), selectedElement.size().height);
+		    }
+		});
+		heightSize.addEventListener('input', function(event) {
+		    if (selectedElement) {
+		        selectedElement.resize(selectedElement.size().width, parseInt(event.target.value));
+		    }
+		});
+		rotation.addEventListener('input', function(event) {
+		    if (selectedElement) {
+		        selectedElement.rotate(parseInt(event.target.value));
+		    }
+		});
+	}
+}
+function exportDiagramAsJSON(graph) {
+    const json = graph.toJSON();
+    const jsonString = JSON.stringify(json, null, 2); // Pretty-print with indentation
+    console.log(jsonString);
+    return jsonString; 
+}
+function switchToBlock() {
+	if(currentTab.id== "entity-tab"){
+		document.getElementById('blockly-editor').style.display = "block";
+	}
+	else if(currentTab.id== "scenario-tab"){
+		document.getElementById('blockly-editor2').style.display = "block";
+	}
+    umlContainer.style.display = "none";
 }
 
 function saveScenario() {

@@ -74,4 +74,3 @@ require(["webjars/ace/1.3.3/src/ace"], function() {
 	joint = joiner
     })
 });
-

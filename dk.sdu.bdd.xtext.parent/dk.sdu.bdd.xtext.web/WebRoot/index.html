@@ -23,9 +23,13 @@
       <div class="editor-tab">
         <span id="entity-tab" style="cursor: pointer;" data-editor-id="xtext-editor-entities" class="tab">Entities</span>
         <span id="scenario-tab"  style="cursor: pointer;"  data-editor-id="xtext-editor-scenarios" class="tab">Scenarios</span>
-		<span id="uml-tab" style="cursor: pointer;"  data-editor-id="xtext-editor-diagrams" class="tab">UML</span>
         <span id="warning-message" style="color:red; visibility: hidden;">Entities should be defined first.</span>
+		<div class="block-uml-tab">
+		      <button type="button" id="blocks-tab" class="tab-button">Blocks</button>
+		      <button type="button" id="uml-tab" class="tab-button">UML</button>
+	      </div>
       </div>
+	  
       <div class="content">
         <div class="xtext-wrapper">
           <div id="xtext-editor-scenarios" class="xtext-editor" style="display: none" 
@@ -36,12 +40,42 @@
             data-editor-resource-id="multi-resource/widgets.bdd" 
             data-editor-xtext-lang="bdd">
           </div>
-		  <div id="xtext-editor-diagrams" class="xtext-editor" style="display: none">
-		  </div>
         </div>
         <div class="blockly" id="blockly-editor" style="display:block;"></div>
         <div class="blockly" id="blockly-editor2" style="display:none;"></div>
-		<div class="blockly" id="blockly-editor3" style="display:none;"></div>
+		<div id="uml-container" class="uml-editor" style="display: none;">
+			<div id="uml-canvas"></div>
+			<div id="toolbox">
+			    <div class="tool-container">
+			        <button type="button" class="tool" draggable="true" id="drawCircle">Circle</button>
+			        <button type="button" class="tool" draggable="true" id="drawSquare">Square</button>
+					<div class="mouse-options">
+						<h4>Mouse options</h4>        
+						<button class="tool" draggable="false" id="movePaperMouse">Pan selector</button>
+						<button class="tool" draggable="false" id="defaultMouse">Arrow selector</button>
+					</div>
+			    </div>
+			    <div class="style-container">
+					<h4>Selected Element settings</h4>        
+			        <label for="fillColorPicker">Fill Color:</label>
+			        <input type="color" id="fillColorPicker" value="#000000">
+			        <label for="strokeColorPicker">Stroke Color:</label>
+			        <input type="color" id="strokeColorPicker" value="#000000">
+			        <label for="textInput">Text:</label>
+					<textarea id="textAreaInput" placeholder="Enter text here"></textarea>
+					<label for="textColorPicker">Text Color:</label>
+				    <input type="color" id="textColorPicker" value="#000000">
+			        <label for="strokeWidth">Stroke Width:</label>
+			        <input type="range" id="strokeWidth" min="1" max="10" value="2">
+			        <label for="widthSize">Width:</label>
+			        <input type="range" id="widthSize" min="20" max="1000" value="80">
+			        <label for="heightSize">Height:</label>
+			        <input type="range" id="heightSize" min="20" max="1000" value="80">
+			        <label for="rotation">Rotation:</label>
+			        <input type="range" id="rotation" min="0" max="360" value="0">
+			    </div>
+			</div>
+		</div>
       </div>
       <div>
         <button id="save-button" value="Save" title="Save">Save</button>

@@ -16,6 +16,7 @@ a:hover {
 
 .editor-tab {
   height: 2rem;
+  position: relative;
 }
 
 .container {
@@ -95,10 +96,115 @@ a:hover {
 #blockly-editor2 {
 	flex: 3;
 	height: 100%;
+}
+#uml-container{
+	position: relative;
+	overflow: none;
 } 
+.uml-editor{
+	width: 60%;
+	border: 1px solid #ccc;
+}
 
-#blockly-editor2 {
-	flex: 3;
-	height: 100%;
-} 
+.block-uml-tab{
+	position: absolute;
+	top: 0%;
+	left: 40%;
+	display: flex;
+	justify-content:flex-start;
+	align-items: center;
+	gap: 5px;
+	width:100%;
+}
+#blocks-tab,
+#uml-tab{
+	padding: 5px;
+	border-radius: 10px;
+	color: white;
+	cursor: pointer;
+	width: 10%;
+}
+#blocks-tab{
+	background-color: rgb(90, 129, 164);
+}
+#uml-tab{
+	background-color: rgb(238, 157, 35);
+}
+.uml-toolbox {
+    background-color: #f9f9f9;
+    overflow-y: auto;
+}
+#toolbox {
+	position: absolute;
+	top: 0%;
+	left:0%;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 10%;
+	padding-left:10px;
+	padding-right:10px;
+    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
+	height:100%;
+	overflow: auto;
+}
+h3 {
+    text-align: center;
+    color: #333;
+}
 
+.tool-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.tool,
+#contextMenu button{
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px 0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.tool:hover,
+#contextMenu button:hover{
+    background-color: #0056b3;
+}
+.tool.selected{
+	background-color: #0056b3;
+}
+
+.style-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+label {
+    margin: 5px 0;
+}
+
+input[type="color"],
+input[type="range"] {
+    margin-top: 5px;
+    width: 100%;
+}
+#contextMenu{
+	display: flex;
+	flex-direction:column;
+	justify-content:center;
+	align-items: center;
+}
+#toolbox textarea{
+	resize: vertical;
+	border-radius:10px;
+	padding:5px;
+	width:100%;
+	min-height: 100px;
+  	max-height: 300px;
+}
