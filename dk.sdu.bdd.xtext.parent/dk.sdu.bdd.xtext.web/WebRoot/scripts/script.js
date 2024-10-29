@@ -680,9 +680,11 @@ function loadUMLDiagram() {
 	}
 }
 function exportDiagramAsJSON(graph) {
+	
     const json = graph.toJSON();
     const jsonString = JSON.stringify(json, null, 2); // Pretty-print with indentation
     console.log(jsonString);
+	console.log("hello:");
     return jsonString; 
 }
 function switchToBlock() {
@@ -794,6 +796,8 @@ function runExampleUml(){
 	        link.source(rect);
 	        link.target(rect2);
 	        link.addTo(graph);
+			
 }
+
 
 
