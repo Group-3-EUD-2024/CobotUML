@@ -25,3 +25,8 @@
 
 # Locally stored "Eclipse launch configurations"
 *.launch
+/dk.sdu.bdd.xtext.parent/dk.sdu.bdd.xtext.ui/target
+/dk.sdu.bdd.xtext.parent/dk.sdu.bdd.xtext.ui/xtend-gen
+/dk.sdu.bdd.xtext.parent/dk.sdu.bdd.xtext.web/target
+/dk.sdu.bdd.xtext.parent/dk.sdu.bdd.xtext.web/xtend-gen
+/dk.sdu.bdd.xtext.parent/dk.sdu.bdd.xtext/target
