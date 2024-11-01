@@ -133,7 +133,7 @@ function switchEditor(e) {
         umlContainer.style.display = "none";
 		if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
 		else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }
-		else if (editorId == "xtext-editor-diagrams") { b = "blockly-editor3"}
+		else if (editorId == "xtext-editor-diagrams") { b = "uml-editor"}
 		
 		console.log(editorId)
 		let editor = document.getElementById(editorId)
@@ -466,12 +466,22 @@ function loadUMLDiagram() {
         });
 		enableCanvasPanning(paper);
 		enableCanvasZoom(paper);
-
+		let ghostEl;
         // Handle drag and drop for elements
         const toolbox = document.getElementById('toolbox');
+
         toolbox.addEventListener('dragstart', (event) => {
             event.dataTransfer.setData('text/plain', event.target.id);
+			// Create a ghost element to follow the mouse
+			ghostEl = event.target.cloneNode(true);
+			ghostEl.classList.add("ghost");
+			document.body.appendChild(ghostEl);
+			event.dataTransfer.setDragImage(ghostEl, ghostEl.offsetWidth / 2, ghostEl.offsetHeight / 2);
         });
+
+		toolbox.addEventListener('dragend', (event) => {
+			document.body.removeChild(ghostEl);
+		});
 
         paper.el.addEventListener('dragover', (event) => {
             event.preventDefault(); // Allow dropping
