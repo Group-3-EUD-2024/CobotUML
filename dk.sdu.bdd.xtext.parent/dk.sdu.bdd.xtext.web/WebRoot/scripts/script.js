@@ -476,6 +476,11 @@ function loadUMLDiagram() {
 			ghostEl = event.target.cloneNode(true);
 			ghostEl.classList.add("ghost");
 			document.body.appendChild(ghostEl);
+			console.log(ghostEl);
+			// make the polygon form when start dragging, becuase otherwise the dragging form will be a square
+			if(ghostEl.id === "drawPolygon"){
+				
+			}
 			event.dataTransfer.setDragImage(ghostEl, ghostEl.offsetWidth / 2, ghostEl.offsetHeight / 2);
         });
 
@@ -490,29 +495,128 @@ function loadUMLDiagram() {
         paper.el.addEventListener('drop', (event) => {
             event.preventDefault();
             const id = event.dataTransfer.getData('text/plain');
+			console.log(id);
             const position = paper.clientToLocalPoint(event.clientX, event.clientY);
 
             // Create shapes based on the dragged button
             let cell;
             switch (id) {
+				case 'drawSquare':
+	                cell = new namespace.standard.Rectangle({
+	                    position: { x: position.x, y: position.y },
+	                    size: { width: 80, height: 80 },
+	                    attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Square', fill: 'white' } }
+	                });
+                	break;
                 case 'drawCircle':
-                    cell = new namespace.standard.Circle({
+                    cell = new namespace.standard.Ellipse({
                         position: { x: position.x, y: position.y },
                         size: { width: 80, height: 80 },
                         attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
                     });
                     break;
-                case 'drawSquare':
-                    cell = new namespace.standard.Polygon({
-                        position: { x: position.x, y: position.y },
-                        size: { width: 80, height: 80 },
-                        attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Triangle', fill: 'white' } }
-                    });
-                    break;
+				case 'drawPolygon':
+	                cell = new namespace.standard.Polygon({
+	                    position: { x: position.x, y: position.y },
+	                    size: { width: 70, height: 50 },
+	                    attrs: 
+							{ 
+								circle: { fill: '#f6a600' }, 
+								text: { text: 'Polygon', fill: 'white' }, 
+								body: {
+									points: 'calc(w/2),0 calc(w),calc(h/2) calc(w/2),calc(h) 0,calc(h/2)'
+								} 
+							}
+	                });
+	                break;
+                
             }
 
             if (cell) {
                 graph.addCell(cell);
+				// const borderedRecord = new namespace.standard.BorderedRecord();
+				const doubleLink = new namespace.standard.DoubleLink();
+				doubleLink.prop('source', { x: 500, y: 600 });
+				doubleLink.prop('target', { x: 450, y: 750 });
+				doubleLink.prop('vertices', [{ x: 500, y: 700 }]);
+				doubleLink.attr('root/title', 'shapes.standard.DoubleLink');
+				doubleLink.attr('line/stroke', '#30d0c6');
+				graph.addCell(doubleLink);
+				const headeredRectangle = new namespace.standard.HeaderedRectangle();
+				headeredRectangle.resize(150, 100);
+				headeredRectangle.position(25, 610);
+				headeredRectangle.attr('root/title', 'shapes.standard.HeaderedRectangle');
+				headeredRectangle.attr('header/fill', 'lightgray');
+				headeredRectangle.attr('headerText/text', 'Header');
+				headeredRectangle.attr('bodyText/text', 'Headered\nRectangle');
+				graph.addCell(headeredRectangle);
+				const path = new namespace.standard.Path();
+				path.resize(100, 100);
+				path.position(50, 210);
+				path.attr('root/title', 'shapes.standard.Path');
+				path.attr('label/text', 'Path');
+				path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
+				graph.addCell(path);
+				const polyline = new namespace.standard.Polyline();
+				polyline.resize(100, 100);
+				polyline.position(450, 210);
+				polyline.attr('root/title', 'shapes.standard.Polyline');
+				polyline.attr('label/text', 'Polyline');
+				polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
+				graph.addCell(polyline);
+				const shadowLink = new namespace.standard.ShadowLink();
+				shadowLink.prop('source', { x: 550, y: 600 });
+				shadowLink.prop('target', { x: 500, y: 750 });
+				shadowLink.prop('vertices', [{ x: 550, y: 700 }]);
+				shadowLink.attr('root/title', 'shapes.standard.ShadowLink');
+				shadowLink.attr('line/stroke', '#5654a0');	
+				graph.addCell(shadowLink);	
+				const textBlock = new namespace.standard.TextBlock();
+				textBlock.resize(100, 100);
+				textBlock.position(250, 610);
+				textBlock.attr('root/title', 'shapes.standard.TextBlock');
+				textBlock.attr('body/fill', 'lightgray');
+				textBlock.attr('label/text', 'Hyper Text Markup Language');
+				// Styling of the label via `style` presentation attribute (i.e. CSS).
+				textBlock.attr('label/style/color', 'red');
+				graph.addCell(textBlock);
+				// Define a custom shape with SVG markup
+				const CustomSVGShape = joint.dia.Element.define('custom.SVGShape', {
+				    size: { width: 100, height: 100 },
+				    attrs: {
+				        body: {
+				            // Styles for the SVG path (like a star shape)
+				            fill: '#FFD700',
+				            stroke: '#FFA500',
+				            strokeWidth: 2,
+				        },
+				        label: {
+				            text: 'Custom SVG Shape',
+				            fontSize: 12,
+				            fill: '#000',
+				            refX: '50%',
+				            refY: '50%',
+				            textAnchor: 'middle',
+				            textVerticalAnchor: 'middle'
+				        }
+				    }
+				}, {
+				    markup: `
+				        <g class="body">
+				            <path d="M50 15 L61 35 L82 35 L66 50 L71 71 L50 60 L29 71 L34 50 L18 35 L39 35 Z"/>
+				            <text class="label"/>
+				        </g>
+				    `
+				});
+
+				// Create an instance and add it to the graph
+				const customSVGInstance = new CustomSVGShape();
+				customSVGInstance.position(250, 610); // Set the position of your choice
+				customSVGInstance.resize(100, 100); // Adjust size as needed
+				graph.addCell(customSVGInstance);
+
+
+				
             }
 			exportDiagramAsJSON(graph);
         });
@@ -522,6 +626,12 @@ function loadUMLDiagram() {
 	        editFigure(sourceElement);
 			exportDiagramAsJSON(graph);
 			paper.off('cell:pointerclick', arguments.callee);
+		});
+		paper.on('link:pointerclick', function(linkView) {
+		    const clickedLink = linkView.model;
+		    console.log("Link clicked:", clickedLink);
+			editLink(clickedLink);
+		    exportDiagramAsJSON(graph);
 		});
 		document.addEventListener('contextmenu',(event)=> {
 			event.preventDefault();
@@ -603,15 +713,143 @@ function loadUMLDiagram() {
 				paper.off('cell:pointerclick', arguments.callee);
 		    });
 		}
+	function editLink(selectedLink){
+		let colorPicker = document.getElementById('fillColorPicker');
+		const colorPickerLabel = document.querySelector('label[for="fillColorPicker"]');
+		let strokeColorPicker = document.getElementById('strokeColorPicker');
+		const strokeColorPickerLabel = document.querySelector('label[for="strokeColorPicker"]');
+		let textAreaInput = document.getElementById('textAreaInput'); 
+		const textAreaInputLabel = document.querySelector('label[for="textAreaInput"]'); 
+		let textColorPicker = document.getElementById('textColorPicker');
+		const textColorPickerLabel = document.querySelector('label[for="textColorPicker"]');
+		let strokeWidth = document.getElementById('strokeWidth');
+		const strokeWidthLabel = document.querySelector('label[for="strokeWidth"]');
+		let widthSize = document.getElementById('widthSize');
+		const widthSizeLabel = document.querySelector('label[for="widthSize"]');
+		let heightSize = document.getElementById('heightSize');
+		const heightSizeLabel = document.querySelector('label[for="heightSize"]');
+		let rotation = document.getElementById('rotation');
+		const rotationLabel = document.querySelector('label[for="rotation"]');
+		let routerType = document.getElementById('routerType'); 
+		let routerTypeLabel = document.getElementById('routerType'); 
+	    let connectorType = document.getElementById('connectorType');
+		let connectorTypeLabel = document.getElementById('connectorType');
+		routerType.style.display = 'block';
+		routerTypeLabel.style.display = 'block';
+		connectorType.style.display = 'block';
+		connectorTypeLabel.style.display = 'block';
+		// These elements cannot be used for styling link
+		strokeColorPicker.style.display = 'block';
+		strokeColorPickerLabel.style.display = 'none';
+		strokeWidth.style.display = 'none';
+		strokeWidthLabel.style.display = 'none';
+		widthSize.style.display = 'none';
+		widthSizeLabel.style.display = 'none';
+		heightSize.style.display = 'none';
+		heightSizeLabel.style.display = 'none';
+		rotation.style.display = 'none';
+		rotationLabel.style.display = 'none';
+		
+		// Remove previous listeners by cloning each input
+	    function removeListeners(input) {
+	        const newInput = input.cloneNode(true);
+	        input.replaceWith(newInput);
+	        return newInput;
+	    }
+		// Replace each input to clear previous listeners
+	    colorPicker = removeListeners(colorPicker);
+	    textAreaInput = removeListeners(textAreaInput);
+		textColorPicker = removeListeners(textColorPicker);
+		routerType = removeListeners(routerType);
+	 	connectorType = removeListeners(connectorType);
+		
+		colorPicker.value = selectedLink.attr('line/fill') || '#000000';
+		textAreaInput.value = selectedLink.labels()[0]?.attrs.text.text || '';
+		textColorPicker.value = selectedLink.attr('label/fill') || '#000000';
+		routerType.value = selectedLink.get('router')?.name || 'normal';
+	   connectorType.value = selectedLink.get('connector')?.name || 'normal';
+		colorPicker.addEventListener('input',function (event) {
+			if (selectedLink) {
+			    selectedLink.attr('line/stroke', event.target.value);
+    		}
+		})
+		textAreaInput.addEventListener('input',function (event) {
+			if (selectedLink) {
+				selectedLink.label(0, {
+	                attrs: {
+	                    text: {
+	                        text: event.target.value,
+	                        'font-size': 12, 
+	                        'text-anchor': 'middle',
+	                        'y-alignment': 'middle'
+	                    }
+	                },
+	                position: 0.5 // Position in the middle of the link
+	            });
+			}
+			exportDiagramAsJSON(graph);
+		})
+		textColorPicker.addEventListener('input', (event) => {
+			if (selectedLink) {
+				selectedLink.label(0, {
+	                attrs: {
+	                    text: {
+	                        fill: event.target.value,
+	                        'font-size': 12, 
+	                        'text-anchor': 'middle',
+	                        'y-alignment': 'middle'
+	                    }
+	                },
+	                position: 0.5 // Position in the middle of the link
+	            });
+			}
+	    });
+		routerType.addEventListener('change', function(event) {
+	        if (selectedLink) {
+	            selectedLink.router(event.target.value);
+	        }
+	    });
+	    connectorType.addEventListener('change', function(event) {
+	        if (selectedLink) {
+	            selectedLink.connector(event.target.value, { cornerType: 'line' });
+	        }
+	    });
+	}
 	function editFigure(selectedElement){
 		let colorPicker = document.getElementById('fillColorPicker');
+		const colorPickerLabel = document.querySelector('label[for="fillColorPicker"]');
 		let strokeColorPicker = document.getElementById('strokeColorPicker');
-		let textAreaInput = document.getElementById('textAreaInput');  
+		const strokeColorPickerLabel = document.querySelector('label[for="strokeColorPicker"]');
+		let textAreaInput = document.getElementById('textAreaInput'); 
+		const textAreaInputLabel = document.querySelector('label[for="textAreaInput"]'); 
 		let textColorPicker = document.getElementById('textColorPicker');
+		const textColorPickerLabel = document.querySelector('label[for="textColorPicker"]');
 		let strokeWidth = document.getElementById('strokeWidth');
+		const strokeWidthLabel = document.querySelector('label[for="strokeWidth"]');
 		let widthSize = document.getElementById('widthSize');
+		const widthSizeLabel = document.querySelector('label[for="widthSize"]');
 		let heightSize = document.getElementById('heightSize');
+		const heightSizeLabel = document.querySelector('label[for="heightSize"]');
 		let rotation = document.getElementById('rotation');
+		const rotationLabel = document.querySelector('label[for="rotation"]');
+		let routerType = document.getElementById('routerType'); 
+		let routerTypeLabel = document.getElementById('routerType'); 
+	    let connectorType = document.getElementById('connectorType');
+		let connectorTypeLabel = document.getElementById('connectorType');
+		routerType.style.display = 'none';
+		routerTypeLabel.style.display = 'none';
+		connectorType.style.display = 'none';
+		connectorTypeLabel.style.display = 'none';
+		strokeColorPicker.style.display = 'block';
+		strokeColorPickerLabel.style.display = 'block';
+		strokeWidth.style.display = 'block';
+		strokeWidthLabel.style.display = 'block';
+		widthSize.style.display = 'block';
+		widthSizeLabel.style.display = 'block';
+		heightSize.style.display = 'block';
+		heightSizeLabel.style.display = 'block';
+		rotation.style.display = 'block';
+		rotationLabel.style.display = 'block';
 		// Remove previous listeners by cloning each input
 	    function removeListeners(input) {
 	        const newInput = input.cloneNode(true);

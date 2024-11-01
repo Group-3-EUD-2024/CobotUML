@@ -205,9 +205,14 @@ label {
 }
 
 input[type="color"],
-input[type="range"] {
+input[type="range"] ,
+.style-container select {
     margin-top: 5px;
     width: 100%;
+}
+.style-container select {
+    padding: 8px; 
+    border-radius: 4px;
 }
 #contextMenu{
 	display: flex;
@@ -282,6 +287,58 @@ input[type="range"] {
 	border-radius: 0;
 	background-color: transparent;
 	border: 2px solid #222222;
+}
+.polygon {
+	width:50px;
+    height:50px;
+	background: white;
+	border: 2px solid black;
+    -webkit-clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+	clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+
+/* If you want a more complex polygon, you can modify the clip-path */
+.hexagon {
+    width: 2rem; /* Base width for hexagon */
+    height: 2rem; /* Set height for hexagon */
+    background-color: transparent; /* Transparent background */
+    border: 2px solid #222222; /* Border color */
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); /* Hexagon shape */
+}
+
+/* Styling for a cylinder, using the ::before and ::after pseudo-elements */
+.cylinder {
+    width: 2rem; /* Base width for cylinder */
+    height: 4rem; /* Height of the cylinder */
+    background-color: transparent; /* Transparent background */
+    border: 2px solid #222222; /* Border color */
+    position: relative; /* Positioning context for pseudo-elements */
+    border-radius: 0 0 10px 10px; /* Rounded bottom corners */
+    overflow: hidden; /* Clip the top rounded edges */
+}
+
+.cylinder::before {
+    content: '';
+    width: 2rem; /* Match width of the cylinder */
+    height: 1rem; /* Height of the top ellipse */
+    background-color: #222222; /* Top color */
+    border-radius: 50%; /* Fully rounded */
+    position: absolute; /* Position relative to the cylinder */
+    top: -1rem; /* Move it above the cylinder */
+    left: 0; /* Center it */
+}
+
+.cylinder::after {
+    content: '';
+    width: 2rem; /* Match width of the cylinder */
+    height: 0.5rem; /* Height of the bottom ellipse */
+    background-color: transparent; /* Bottom color */
+    border-radius: 50%; /* Fully rounded */
+    border: 2px solid #222222; /* Border for the bottom */
+    position: absolute; /* Position relative to the cylinder */
+    bottom: 0; /* At the bottom of the cylinder */
+    left: 0; /* Center it */
 }
 
 .ghost {
