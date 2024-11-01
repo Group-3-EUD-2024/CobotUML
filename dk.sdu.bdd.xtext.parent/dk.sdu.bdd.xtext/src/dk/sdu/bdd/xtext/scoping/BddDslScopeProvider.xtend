@@ -50,7 +50,7 @@ class BddDslScopeProvider extends AbstractBddDslScopeProvider {
 		val allDecEntityDefs = <DeclarativeEntityDef>newArrayList
 		allDecEntityDefs += model.declarativeEntityDef
 		for (modelRef : model.modelRefs) {
-			allDecEntityDefs += getAllDecEntityDefs(modelRef.modelRef)			
+			allDecEntityDefs += getAllDecEntityDefs(modelRef)			
 		}
 		allDecEntityDefs
 	}
