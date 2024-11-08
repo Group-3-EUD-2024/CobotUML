@@ -51,12 +51,19 @@
             <h4>Mouse options</h4>
             <div class="mouse-options">
               <img class="mouse-tool" src="/assets/icons/move-icon.png" draggable="false" id="movePaperMouse"></img>
-              <img class="mouse-tool" src="assets/icons/arrow-icon.png" draggable="false" id="defaultMouse"></img>
+              <img class="mouse-tool selected" src="assets/icons/arrow-icon.png" draggable="false" id="defaultMouse"></img>
             </div>
             <div class="hr"></div>
             <div class="tool circle" draggable="true" id="drawCircle">Circle</div>
             <div class="tool square" draggable="true" id="drawSquare">Square</div>
-			<div class="tool polygon" draggable="true" id="drawPolygon">Polygon</div>
+            <div class="tool class" draggable="true" id="drawClass">
+		      <div>
+			      Class
+		      </div>
+              <div>
+					Body
+              </div>
+	      	</div>
           </div>
           <div class="style-container">
             <h4>Selected Element settings</h4>
@@ -76,6 +83,12 @@
             <input type="range" id="heightSize" min="20" max="1000" value="80">
             <label for="rotation">Rotation:</label>
             <input type="range" id="rotation" min="0" max="360" value="0">
+			<label for="linkShape" style="display: none;">Link Shape:</label>
+		    <select id="linkShape" style="display: none;">
+				<option value="standard.Link">Standard Link</option>
+		        <option value="standard.DoubleLink">Double Link</option>
+		        <option value="standard.ShadowLink">Shadow Link</option>
+		    </select>
 			<!-- Add Router and Connector Type selection for links -->
 		    <label for="routerType" style="display: none;">Router Type:</label>
 		    <select id="routerType" style="display: none;">

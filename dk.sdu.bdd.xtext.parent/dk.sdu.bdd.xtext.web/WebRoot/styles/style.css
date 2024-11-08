@@ -181,6 +181,10 @@ h3 {
     margin-bottom: 15px;
 	align-items: center;
 }
+.tool-container .selected{
+	background-color: rgb(228, 228, 228);
+	transition: all .3s ease-in-out;
+}
 
 .btn,
 #contextMenu button{
@@ -281,64 +285,34 @@ input[type="range"] ,
 	border: 2px solid #222222;
 }
 
-.square {
+.square{
 	width: 2rem;
 	aspect-ratio: 1/1;
 	border-radius: 0;
 	background-color: transparent;
 	border: 2px solid #222222;
 }
-.polygon {
-	width:50px;
-    height:50px;
-	background: white;
+.class{ 
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	text-align: center;
+}
+.class div:nth-child(1){
+	background-color: gray;
 	border: 2px solid black;
-    -webkit-clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-	clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+	width:100%;
+	height: 2rem;
 }
-
-
-/* If you want a more complex polygon, you can modify the clip-path */
-.hexagon {
-    width: 2rem; /* Base width for hexagon */
-    height: 2rem; /* Set height for hexagon */
-    background-color: transparent; /* Transparent background */
-    border: 2px solid #222222; /* Border color */
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); /* Hexagon shape */
-}
-
-/* Styling for a cylinder, using the ::before and ::after pseudo-elements */
-.cylinder {
-    width: 2rem; /* Base width for cylinder */
-    height: 4rem; /* Height of the cylinder */
-    background-color: transparent; /* Transparent background */
-    border: 2px solid #222222; /* Border color */
-    position: relative; /* Positioning context for pseudo-elements */
-    border-radius: 0 0 10px 10px; /* Rounded bottom corners */
-    overflow: hidden; /* Clip the top rounded edges */
-}
-
-.cylinder::before {
-    content: '';
-    width: 2rem; /* Match width of the cylinder */
-    height: 1rem; /* Height of the top ellipse */
-    background-color: #222222; /* Top color */
-    border-radius: 50%; /* Fully rounded */
-    position: absolute; /* Position relative to the cylinder */
-    top: -1rem; /* Move it above the cylinder */
-    left: 0; /* Center it */
-}
-
-.cylinder::after {
-    content: '';
-    width: 2rem; /* Match width of the cylinder */
-    height: 0.5rem; /* Height of the bottom ellipse */
-    background-color: transparent; /* Bottom color */
-    border-radius: 50%; /* Fully rounded */
-    border: 2px solid #222222; /* Border for the bottom */
-    position: absolute; /* Position relative to the cylinder */
-    bottom: 0; /* At the bottom of the cylinder */
-    left: 0; /* Center it */
+.class div:nth-child(2){
+	width: 100%;
+	height: 2rem;
+	background-color: transparent;
+	border-top: 0;
+	border-right: 2px solid #222222;
+	border-bottom: 2px solid #222222;
+	border-left: 2px solid #222222;
 }
 
 .ghost {

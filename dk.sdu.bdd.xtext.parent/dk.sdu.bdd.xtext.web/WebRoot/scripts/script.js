@@ -477,10 +477,6 @@ function loadUMLDiagram() {
 			ghostEl.classList.add("ghost");
 			document.body.appendChild(ghostEl);
 			console.log(ghostEl);
-			// make the polygon form when start dragging, becuase otherwise the dragging form will be a square
-			if(ghostEl.id === "drawPolygon"){
-				
-			}
 			event.dataTransfer.setDragImage(ghostEl, ghostEl.offsetWidth / 2, ghostEl.offsetHeight / 2);
         });
 
@@ -514,27 +510,21 @@ function loadUMLDiagram() {
                         size: { width: 80, height: 80 },
                         attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
                     });
-                    break;
-				case 'drawPolygon':
-	                cell = new namespace.standard.Polygon({
-	                    position: { x: position.x, y: position.y },
-	                    size: { width: 70, height: 50 },
-	                    attrs: 
-							{ 
-								circle: { fill: '#f6a600' }, 
-								text: { text: 'Polygon', fill: 'white' }, 
-								body: {
-									points: 'calc(w/2),0 calc(w),calc(h/2) calc(w/2),calc(h) 0,calc(h/2)'
-								} 
-							}
-	                });
-	                break;
-                
+                    break; 
+				case 'drawClass':
+					// Define the custom shape with dia.MarkupJSON
+					cell = new namespace.standard.HeaderedRectangle();
+					cell .resize(100, 100);
+					cell .position(position.x, position.y);
+					cell .attr('root/title', 'shapes.standard.HeaderedRectangle');
+					cell .attr('header/fill', 'lightgray');
+					cell .attr('headerText/text', 'Header');
+					cell .attr('bodyText/text', 'Headered\nRectangle');
             }
 
             if (cell) {
                 graph.addCell(cell);
-				// const borderedRecord = new namespace.standard.BorderedRecord();
+				/*
 				const doubleLink = new namespace.standard.DoubleLink();
 				doubleLink.prop('source', { x: 500, y: 600 });
 				doubleLink.prop('target', { x: 450, y: 750 });
@@ -542,14 +532,7 @@ function loadUMLDiagram() {
 				doubleLink.attr('root/title', 'shapes.standard.DoubleLink');
 				doubleLink.attr('line/stroke', '#30d0c6');
 				graph.addCell(doubleLink);
-				const headeredRectangle = new namespace.standard.HeaderedRectangle();
-				headeredRectangle.resize(150, 100);
-				headeredRectangle.position(25, 610);
-				headeredRectangle.attr('root/title', 'shapes.standard.HeaderedRectangle');
-				headeredRectangle.attr('header/fill', 'lightgray');
-				headeredRectangle.attr('headerText/text', 'Header');
-				headeredRectangle.attr('bodyText/text', 'Headered\nRectangle');
-				graph.addCell(headeredRectangle);
+				
 				const path = new namespace.standard.Path();
 				path.resize(100, 100);
 				path.position(50, 210);
@@ -614,6 +597,7 @@ function loadUMLDiagram() {
 				customSVGInstance.position(250, 610); // Set the position of your choice
 				customSVGInstance.resize(100, 100); // Adjust size as needed
 				graph.addCell(customSVGInstance);
+				*/
 
 
 				
@@ -624,6 +608,7 @@ function loadUMLDiagram() {
 		paper.on('element:pointerclick', function(cellView) {
 	        sourceElement = cellView.model;
 	        editFigure(sourceElement);
+			console.log(sourceElement.attributes.type);
 			exportDiagramAsJSON(graph);
 			paper.off('cell:pointerclick', arguments.callee);
 		});
@@ -731,15 +716,19 @@ function loadUMLDiagram() {
 		let rotation = document.getElementById('rotation');
 		const rotationLabel = document.querySelector('label[for="rotation"]');
 		let routerType = document.getElementById('routerType'); 
-		let routerTypeLabel = document.getElementById('routerType'); 
+		const routerTypeLabel = document.querySelector('label[for="routerType"]'); 
 	    let connectorType = document.getElementById('connectorType');
-		let connectorTypeLabel = document.getElementById('connectorType');
+		const connectorTypeLabel = document.querySelector('label[for="connectorType"]');
+		let linkShape = document.getElementById('linkShape');
+		const linkShapeLabel = document.querySelector('label[for="linkShape"]');
 		routerType.style.display = 'block';
 		routerTypeLabel.style.display = 'block';
 		connectorType.style.display = 'block';
 		connectorTypeLabel.style.display = 'block';
+		linkShape.style.display = 'block';
+		linkShapeLabel.style.display = 'block'
 		// These elements cannot be used for styling link
-		strokeColorPicker.style.display = 'block';
+		strokeColorPicker.style.display = 'none';
 		strokeColorPickerLabel.style.display = 'none';
 		strokeWidth.style.display = 'none';
 		strokeWidthLabel.style.display = 'none';
@@ -762,12 +751,14 @@ function loadUMLDiagram() {
 		textColorPicker = removeListeners(textColorPicker);
 		routerType = removeListeners(routerType);
 	 	connectorType = removeListeners(connectorType);
+		linkShape = removeListeners(linkShape);
 		
 		colorPicker.value = selectedLink.attr('line/fill') || '#000000';
 		textAreaInput.value = selectedLink.labels()[0]?.attrs.text.text || '';
 		textColorPicker.value = selectedLink.attr('label/fill') || '#000000';
 		routerType.value = selectedLink.get('router')?.name || 'normal';
 	   connectorType.value = selectedLink.get('connector')?.name || 'normal';
+	   linkShape.value = selectedLink.attributes.type || 'standard.Link';
 		colorPicker.addEventListener('input',function (event) {
 			if (selectedLink) {
 			    selectedLink.attr('line/stroke', event.target.value);
@@ -814,6 +805,50 @@ function loadUMLDiagram() {
 	            selectedLink.connector(event.target.value, { cornerType: 'line' });
 	        }
 	    });
+		linkShape.addEventListener('change',function(event){
+				const newShapeType = event.target.value; 
+				let newLink = null;
+				switch(event.target.value){
+					case "standard.Link":
+						newLink = new namespace.standard.Link;
+						break;
+					case "standard.DoubleLink":
+						newLink = new namespace.standard.DoubleLink;
+						break;
+					case "standard.ShadowLink":
+						newLink = new namespace.standard.ShadowLink;
+						break;
+				}
+			    // Update source and target for the new link
+			    newLink.source(selectedLink.source());
+			    newLink.target(selectedLink.target());
+				// Copy all attributes from the old link to the new link
+	            copyAttributes(selectedLink, newLink);
+				// Remove the old link from the graph
+				graph.getCell(selectedLink.id).remove();
+				graph.addCell(newLink);
+				selectedLink = newLink;
+		})
+		function copyAttributes(oldLink, newLink) {
+		        newLink.attr('line/stroke', oldLink.attr('line/stroke'));
+		        const labelAttrs = oldLink.labels()[0]?.attrs.text;
+		        if (labelAttrs) {
+		            newLink.label(0, {
+		                attrs: {
+		                    text: {
+		                        text: labelAttrs.text,
+		                        fill: labelAttrs.fill,
+		                        'font-size': labelAttrs['font-size'],
+		                        'text-anchor': labelAttrs['text-anchor'],
+		                        'y-alignment': labelAttrs['y-alignment']
+		                    }
+		                },
+		                position: 0.5
+		            });
+		        }
+		        newLink.router(oldLink.get('router'));
+		        newLink.connector(oldLink.get('connector'));
+		    }
 	}
 	function editFigure(selectedElement){
 		let colorPicker = document.getElementById('fillColorPicker');
@@ -833,13 +868,17 @@ function loadUMLDiagram() {
 		let rotation = document.getElementById('rotation');
 		const rotationLabel = document.querySelector('label[for="rotation"]');
 		let routerType = document.getElementById('routerType'); 
-		let routerTypeLabel = document.getElementById('routerType'); 
+		const routerTypeLabel = document.querySelector('label[for="routerType"]'); 
 	    let connectorType = document.getElementById('connectorType');
-		let connectorTypeLabel = document.getElementById('connectorType');
+		const connectorTypeLabel = document.querySelector('label[for="connectorType"]');
+		let linkShape = document.getElementById('linkShape');
+		const linkShapeLabel = document.querySelector('label[for="linkShape"]');
 		routerType.style.display = 'none';
 		routerTypeLabel.style.display = 'none';
 		connectorType.style.display = 'none';
 		connectorTypeLabel.style.display = 'none';
+		linkShape.style.display = 'none';
+		linkShapeLabel.style.display = 'none';
 		strokeColorPicker.style.display = 'block';
 		strokeColorPickerLabel.style.display = 'block';
 		strokeWidth.style.display = 'block';
@@ -850,6 +889,13 @@ function loadUMLDiagram() {
 		heightSizeLabel.style.display = 'block';
 		rotation.style.display = 'block';
 		rotationLabel.style.display = 'block';
+		if (selectedElement.attributes.type == "standard.HeaderedRectangle") {
+			textColorPicker.style.display = 'none';
+			textColorPickerLabel.style.display = 'none';
+		}else{
+			textColorPicker.style.display = 'block';
+			textColorPickerLabel.style.display = 'block';
+		}
 		// Remove previous listeners by cloning each input
 	    function removeListeners(input) {
 	        const newInput = input.cloneNode(true);
@@ -868,7 +914,7 @@ function loadUMLDiagram() {
 		
 		colorPicker.value = selectedElement.attr('body/fill') || '#000000';
 		strokeColorPicker.value = selectedElement.attr('body/stroke') || '#000000';
-		textAreaInput.value = selectedElement.attr('label/text') || '';
+		textAreaInput.value = selectedElement.attributes.type == "standard.HeaderedRectangle" && selectedElement.attr('headerText/text') + "\n" + selectedElement.attr('bodyText/text') || selectedElement.attr('label/text') || '';
 		textColorPicker.value = selectedElement.attr('label/fill') || '#000000';
 		strokeWidth.value = selectedElement.attr('body/strokeWidth') || 2;
 		widthSize.value = selectedElement.size().width || 80;
@@ -885,7 +931,40 @@ function loadUMLDiagram() {
     		}
 		})
 		textAreaInput.addEventListener('input',function (event) {
-			if (selectedElement) {
+			if(selectedElement.attributes.type == "standard.HeaderedRectangle"){
+				const text = event.target.value ;
+				    
+				    // Check if there's a newline character
+				    if (text.includes('\n')) {
+				        // Split text at the first newline character
+				        const [firstPart, ...rest] = text.split('\n');
+				        const secondPart = rest.join('\n'); // Join rest
+				        let part1 = firstPart;
+				        let part2 = secondPart;
+						selectedElement.attr('headerText/text',part1);
+						selectedElement.attr('bodyText/text',part2);						
+				    }
+				/*
+				selectedElement.attr({
+					attrs:{
+						root:{
+							"headerText": event.target.value 
+						}
+						label: {
+					        'font-size': 12,
+					        'text-anchor': 'middle',
+					        'text-vertical-anchor': 'middle',
+					        'ref-y': 0.5,
+					        'y-alignment': 'middle',
+					        'white-space': 'pre-wrap'
+					    }
+						
+					}
+				    
+				});
+				*/
+			}
+			else {
 				selectedElement.attr({
 				    label: {
 				        text: event.target.value,
