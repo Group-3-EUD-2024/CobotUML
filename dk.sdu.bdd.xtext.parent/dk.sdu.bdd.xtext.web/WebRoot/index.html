@@ -22,7 +22,16 @@
         <label for="fileName">File name</label>
         <input id="fileName" type="text" maxlength="35" />
 		</span>
-		<button class="theme-toggle-btn">Toggle Theme</button>
+		<div class="dark-light-mode">
+			<p>
+				Theme:
+			</p>
+			<button class="theme-toggle-btn">		
+				<span class="switch"></span>
+		    </button>
+		</div>
+		
+		
     </div>
     <div class="editor-tab">
       <span id="entity-tab" style="cursor: pointer;" data-editor-id="xtext-editor-entities" class="tab">Entities</span>
@@ -110,7 +119,7 @@
         </div>
       </div>
     </div>
-    <div>
+    <div class= "generealButtons">
       <button id="save-button" value="Save" title="Save">Save</button>
       <input id="file-input" type="file" style="display: none;" />
       <button id="load-button" value="Load" title="Load">Load</button>

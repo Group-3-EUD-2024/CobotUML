@@ -3,14 +3,10 @@ function toggleTheme() {
   const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
   localStorage.setItem("theme", theme);
 }
-
-// Event listener to load the saved theme when the page loads
-window.onload = function () {
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark") {
-    document.body.classList.add("dark-mode");
-  }
-};
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "dark") {
+	document.body.classList.toggle("dark-mode");
+ }
  const lightDarkButton = document.querySelector(".theme-toggle-btn");
   if (lightDarkButton) {
     lightDarkButton.addEventListener("click", toggleTheme);
@@ -202,22 +198,20 @@ function onScenarioEditorChange() {
 }
 
 function setSelectionBorder(element) {
-	element.style.border = "2px black solid";
+	element.style.border = "2px white solid";
 }
 
 function removeSelectionBorder(element) {
-	element.style.border = "2px white solid"
+	element.style.border = "2px black solid"
 }
 
 function setDisabled(element) {
-	element.style.backgroundColor = "#f2f2f2";
 	element.style.pointerEvents = "none";
 	element.disabled = true;
 	warningMessage.style.visibility = "visible";
 }
 
 function setEnabled(element) {
-	element.style.backgroundColor = "#ddd";
 	element.style.pointerEvents = "auto";
 	element.disabled = false;
 	warningMessage.style.visibility = "hidden";
