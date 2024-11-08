@@ -1,12 +1,39 @@
+:root {
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --link-color: #22a;
+  --border-color: #aaa;
+  --header-bg: #ddd;
+  --tab-bg: #eee;
+  --uml-tool-bg: #f9f9f9;
+  --primary-color: #007bff;
+  --tab-highlight: rgb(90, 129, 164);
+  --uml-highlight: rgb(238, 157, 35);
+}
+
+body.dark-mode {
+  --background-color: #1e1e1e;
+  --text-color: #f5f5f5;
+  --link-color: #4da8da;
+  --border-color: #555;
+  --header-bg: #333333;
+  --tab-bg: #444444;
+  --uml-tool-bg: #333333;
+  --primary-color: #29a8df;
+  --tab-highlight: rgb(68, 103, 133);
+  --uml-highlight: rgb(195, 120, 30);
+}
 body {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
 	font: 16px Helvetica,sans-serif;
+	background-color: var(--background-color);
+	color: var(--text-color);
 }
 
 a {
-	color: #22a;
+	color: var(--link-color);
 	text-decoration: none;
 }
 
@@ -17,6 +44,10 @@ a:hover {
 .editor-tab {
   height: 2rem;
   position: relative;
+}
+.editor-tab #entity-tab,
+.editor-tab #scenario-tab{
+	background-color: var(--primary-color);
 }
 
 .container {
@@ -39,6 +70,7 @@ a:hover {
 	right: 0;
 	height: 60px;
 	padding: 10px;
+	background-color: var(--header-bg);
 }
 
 .content {
@@ -61,7 +93,6 @@ a:hover {
 
 
 .tab {
-  background-color: #ddd;
   padding: 5px 2.5px;
 }
 
@@ -125,20 +156,20 @@ a:hover {
 	width: 10%;
 }
 #blocks-tab{
-	background-color: rgb(90, 129, 164);
+	background-color: var(--tab-highlight);
 }
 #uml-tab{
-	background-color: rgb(238, 157, 35);
+	background-color: var(--uml-highlight);
 }
 .uml-toolbox {
-    background-color: #f9f9f9;
+	background-color: var(--uml-tool-bg);
     overflow-y: auto;
 }
 #toolbox {
 	position: absolute;
 	top: 0%;
 	left:0%;
-    background-color: #f9f9f9;
+	background-color: var(--uml-tool-bg);
     border: 1px solid #ccc;
     border-radius: 8px;
     width: 20%;
@@ -188,7 +219,7 @@ h3 {
 
 .btn,
 #contextMenu button{
-    background-color: #007bff;
+	background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 5px;
@@ -318,4 +349,18 @@ input[type="range"] ,
 .ghost {
 	color: transparent;
 	transform: translateX(-100%);
+}
+.theme-toggle-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  cursor: pointer;
+  margin-left: 1rem;
+  transition: background-color 0.3s;
+}
+
+.theme-toggle-btn:hover {
+  background-color: #0056b3;
 }

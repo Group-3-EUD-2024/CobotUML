@@ -1,3 +1,20 @@
+function toggleTheme() {
+  document.body.classList.toggle("dark-mode");
+  const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
+  localStorage.setItem("theme", theme);
+}
+
+// Event listener to load the saved theme when the page loads
+window.onload = function () {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+};
+ const lightDarkButton = document.querySelector(".theme-toggle-btn");
+  if (lightDarkButton) {
+    lightDarkButton.addEventListener("click", toggleTheme);
+  }
 function readFile() {
 	let input = document.getElementById('file-input')
 	let file = input.files[0]
@@ -138,11 +155,7 @@ function switchEditor(e) {
 		console.log(editorId)
 		let editor = document.getElementById(editorId)
 		let blockly = document.getElementById(b)
-		blockly.style.display = "block";
 		displayEditor(currentEditor, editor, currentBlockly, blockly)
-		if (editorId == "xtext-editor-diagrams") {
-			runExampleUml();
-		}
 		currentEditor = editor
 		currentTab = e.target
 		currentBlockly = blockly
