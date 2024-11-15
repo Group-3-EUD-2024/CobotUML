@@ -392,7 +392,35 @@ function switchToUml() {
 	document.getElementById('blockly-editor2').style.display = "none";
     // Show the UML container
     umlContainer.style.display = "block";
-	loadUMLDiagram();
+	let umlJson = null;
+	/*
+	fetch('/xtext-service/uml?resource=multi-resource/scenarios.bdd')
+        .then(response => {
+            // Check if the response is OK (status 200-299)
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+            // Ensure response is JSON
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                return response.json(); // Parse JSON if valid
+            } else {
+                throw new Error("Response is not JSON.");
+            }
+        })
+        .then(umlJson => {
+            if (umlJson) {
+                console.log("Fetched UML diagram:", umlJson);
+                loadUMLDiagram(umlJson);
+            } else {
+                console.warn("UML diagram is empty or undefined.");
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching UML diagram:", error);
+        });
+		*/
+	loadUMLDiagram(umlJson);
 
 }
 let graph = null;
@@ -456,10 +484,10 @@ function enableCanvasZoom(paper) {
         paper.scale(currentScale);
     });
 }
-function loadUMLDiagram() {
-	if (graph) {
-        return; 
-    }
+function loadUMLDiagram(umlJson) {
+		if (graph) {
+	        return; 
+	    }
         var namespace = joint.shapes;
         graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
@@ -471,6 +499,9 @@ function loadUMLDiagram() {
             gridSize: 1,
             drawGrid: true,
         });
+		if(umlJson){
+			graph.fromJSON(umlJson);
+		}
 		enableCanvasPanning(paper);
 		enableCanvasZoom(paper);
 		let ghostEl;
@@ -1017,7 +1048,29 @@ function exportDiagramAsJSON(graph) {
     const json = graph.toJSON();
     const jsonString = JSON.stringify(json, null, 2); // Pretty-print with indentation
     console.log(jsonString);
-    return jsonString; 
+	if(jsonString){
+		fetch('/save-uml',{
+	        method: 'POST',
+	        headers: {
+	            'Content-Type': 'application/json',
+	        },
+	        body: jsonString,
+	    })
+	    .then(response => {
+	        if (!response.ok) {
+	            throw new Error(`HTTP error! Status: ${response.status}`);
+	        }
+	        return response.json();
+	    })
+	    .then(responseData => {
+	        console.log("Diagram successfully exported:", responseData);
+	    })
+	    .catch(error => {
+	        console.error("Error exporting diagram:", error);
+	    });
+	}
+    
+    return jsonString;
 }
 function switchToBlock() {
 	if(currentTab.id== "entity-tab"){
