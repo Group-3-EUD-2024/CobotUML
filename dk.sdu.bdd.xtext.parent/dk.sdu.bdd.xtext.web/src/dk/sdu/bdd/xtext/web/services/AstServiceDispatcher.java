@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.emf.common.util.EList;
@@ -46,116 +47,133 @@ import dk.sdu.bdd.xtext.web.services.blockly.toolbox.CategoryToolBox;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.inject.Inject;
 
 public class AstServiceDispatcher extends XtextServiceDispatcher {
 	@Inject
 	private IWebResourceSetProvider resourceSetProvider;
-	
+
 	@Inject
 	private BddDslGrammarAccess grammarAccess;
-	
+
 	private BlockFeatures blockFeatures;
 	private CategoryToolBox toolBox;
 	private ArrayList<Block> blockArray;
-	
+
 	@Override
-	protected ServiceDescriptor createServiceDescriptor(String serviceType, IServiceContext context){
+	protected ServiceDescriptor createServiceDescriptor(String serviceType, IServiceContext context) {
 		if (serviceType != null) {
 			switch (serviceType) {
 				case "ast":
+					System.err.println("ast");
 					return getAstService(context);
 				case "blocks":
 					return getBlocksService(context);
+                case "uml":
+                    System.err.println("UML service called");
+					return getBlocksService(context);
+                    // return getUmlService(context); // New UML servicee
 				default:
 					return super.createServiceDescriptor(serviceType, context);
 			}
-		} 
-		else {
+		} else {
 			throw new InvalidRequestException("The service type '" + serviceType + "' is not supported.");
 		}
 	}
-	
-	ServiceDescriptor getAstService(IServiceContext context) {
-		
-		String resource = context.getParameter("resource");
-		ResourceSet resourceSet = resourceSetProvider.get(resource, context);
-		
-		EList<Resource> list = resourceSet.getResources();
-		
-		AstServiceProvider provider = new AstServiceProvider();
-		
-		ServiceDescriptor serviceDescriptor = new ServiceDescriptor();		
-		serviceDescriptor.setService(() -> {
-			return new AstServiceResult(provider.getAst(list));
-	     });
-		return serviceDescriptor;
 
+	ServiceDescriptor getAstService(IServiceContext context) {
+
+	    String resource = context.getParameter("resource");
+	    System.out.println("Resource: " + resource);
+
+	    ResourceSet resourceSet = resourceSetProvider.get(resource, context);
+	    EList<Resource> list = resourceSet.getResources();
+
+	    // Debug: Print resource details
+	    System.out.println("Resources in ResourceSet:");
+	    for (Resource res : list) {
+	        System.out.println(" - " + res.getURI().toString());
+	    }
+
+	    AstServiceProvider provider = new AstServiceProvider();
+
+	    // Debug: Simulate and print AST results for clarity
+	    System.out.println("Generating AST...");
+	    ArrayNode astResult = provider.getAst(list); // Assuming getAst returns a list of strings
+	    for (JsonNode node : astResult) {
+	        System.out.println("AST Node: " + node); // Print each AST node string
+	    }
+
+	    ServiceDescriptor serviceDescriptor = new ServiceDescriptor();
+	    serviceDescriptor.setService(() -> {
+	        return new AstServiceResult(astResult);
+	    });
+	    return serviceDescriptor;
 	}
-	
+
 	ServiceDescriptor getBlocksService(IServiceContext context) {
 		blockFeatures = new BlockFeatures();
-				
-		//TODO: Better categories
-		//setup toolbox
-		toolBox = new CategoryToolBox();	
-				
+
+		// TODO: Better categories
+		// setup toolbox
+		toolBox = new CategoryToolBox();
+
 		Category general = new Category("General");
 		toolBox.addCategory(general);
-		
+
 		blockArray = new ArrayList<>();
 		blockArray.addAll(parseGrammar(grammarAccess.getGrammar(), general));
-		
+
 		blockArray = handleDuplicateBlocks(blockArray);
-		
-		Iterator<Block> blockIterator =  blockArray.iterator();
-		
-		while(blockIterator.hasNext()) {
+
+		Iterator<Block> blockIterator = blockArray.iterator();
+
+		while (blockIterator.hasNext()) {
 			Block block = blockIterator.next();
 			block.addAllPrevious(blockFeatures.getFeature(block.getType(), StatementTypes.previousStatement));
 			block.addAllNext(blockFeatures.getFeature(block.getType(), StatementTypes.nextStatement));
 			ArrayList<String> outputs = blockFeatures.getFeature(block.getType(), StatementTypes.output);
-			
+
 			if (outputs != null && block.getPreviousStatement() == null && block.getNextStatement() == null) {
 				block.setOutput(outputs.get(0));
 			}
-			
-			if (block.getPreviousStatement() == null && block.getOutput() == null && 
+
+			if (block.getPreviousStatement() == null && block.getOutput() == null &&
 					!block.getMessage0().contains("model")) {
 				general.popCategoryItem(block.getType());
 				blockIterator.remove();
 				continue;
 			}
-						
+
 			Category cat = block.getBlockCategory();
 			ArrayList<CategoryItem> catContents = cat.getContents();
-			
-			
+
 			if (catContents != null &&
 					!block.getType().contains("subBlock")) {
-				
+
 				general.popCategoryItem(block.getType());
-				
+
 				Category existingCategory = null;
-				
+
 				for (Category c : toolBox.getContents()) {
-		            if (cat.getName().equals(c.getName())) {
-		                existingCategory = c;
-		                break;
-		            }
-		        }
-				
+					if (cat.getName().equals(c.getName())) {
+						existingCategory = c;
+						break;
+					}
+				}
+
 				boolean blockExistsInContents = false;
-				for (CategoryItem i : cat.getContents())
-				{
+				for (CategoryItem i : cat.getContents()) {
 					if (i.getType().equals(block.getType()))
 						blockExistsInContents = true;
 				}
-				
+
 				if (!blockExistsInContents)
 					cat.addCategoryItem(new CategoryItem(block.getType()));
-				
+
 				if (existingCategory == null)
 					toolBox.addCategory(cat);
 				else
@@ -163,36 +181,36 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 						existingCategory.addCategoryItem(i);
 			}
 		}
-		
+
 		for (Category c : toolBox.getContents()) {
-            c.setContents(handleDuplicateCategoryItems(c, blockArray));        
-        }
-		
+			c.setContents(handleDuplicateCategoryItems(c, blockArray));
+		}
+
 		ObjectMapper objectMapper = new ObjectMapper();
-		//remove all fields that are null;
+		// remove all fields that are null;
 		objectMapper.setSerializationInclusion(Include.NON_NULL);
-		
+
 		try {
 			String blockarr = objectMapper.writeValueAsString(blockArray);
 			String toolboxstr = objectMapper.writeValueAsString(toolBox);
 			System.out.println(blockarr);
 			System.out.println(toolboxstr);
-			
-			ServiceDescriptor serviceDescriptor = new ServiceDescriptor();		
+
+			ServiceDescriptor serviceDescriptor = new ServiceDescriptor();
 			serviceDescriptor.setService(() -> {
-		        return new BlockServiceResult(blockarr, toolboxstr);
-		     });
+				return new BlockServiceResult(blockarr, toolboxstr);
+			});
 			return serviceDescriptor;
 		} catch (JsonProcessingException e) {
- 			ServiceDescriptor serviceDescriptor = new ServiceDescriptor();		
+			ServiceDescriptor serviceDescriptor = new ServiceDescriptor();
 			serviceDescriptor.setService(() -> {
-		        return new BlockServiceResult("err", "err");
-		     });
+				return new BlockServiceResult("err", "err");
+			});
 			e.printStackTrace();
 			return serviceDescriptor;
 		}
 	}
-	
+
 	ArrayList<Block> parseGrammar(Grammar grammar, Category categoryContent) {
 		ArrayList<Block> blockArray = new ArrayList<>();
 		EList<AbstractRule> rules = grammar.getRules();
@@ -204,62 +222,62 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 				Block newBlock = new Block(rule.getName());
 				Block block = parseRule(parserRule, newBlock);
 				// TODO: rule specific code
-				if(rule.getName().equals("Model")) {
+				if (rule.getName().equals("Model")) {
 					block.setOutput(null);
 				}
 				blockArray.add(block);
 				categoryContent.addCategoryItem(new CategoryItem(block.getType()));
-				System.out.println("rule contents: \n" + dump(rule, "    ")); 
+				System.out.println("rule contents: \n" + dump(rule, "    "));
 			}
 		}
 		return blockArray;
 	}
-	
-	//Parse a rule and return a Blockly Block representing the Rule
+
+	// Parse a rule and return a Blockly Block representing the Rule
 	private Block parseRule(ParserRule rule, Block block) {
-		TreeIterator<EObject> iterator =  rule.eAllContents();
-				
-		while(iterator.hasNext()) {
+		TreeIterator<EObject> iterator = rule.eAllContents();
+
+		while (iterator.hasNext()) {
 			EObject next = iterator.next();
 			boolean prune = parseLoop(next, block);
-			
+
 			if (prune) {
 				iterator.prune();
 			}
 		}
-			
+
 		return block;
 	}
-	
+
 	private boolean parseLoop(EObject obj, Block block) {
-		
+
 		if (obj instanceof Group) {
 			Group group = (Group) obj;
 			if (group.getCardinality() == null) {
-				//continue walking the tree;
+				// continue walking the tree;
 				return false;
-			} 
+			}
 			return parseGroup(group, block);
-		} 
+		}
 		if (obj instanceof Assignment) {
 			Assignment assign = (Assignment) obj;
 			return parseAssignment(assign, block);
 		}
-		
+
 		if (obj instanceof Keyword) {
 			Keyword keyWord = (Keyword) obj;
 			return parseKeyword(keyWord, block);
-		} 
-		
+		}
+
 		if (obj instanceof RuleCall) {
 			RuleCall rule = (RuleCall) obj;
-			return parseRuleCall(rule, block);			
+			return parseRuleCall(rule, block);
 		}
-		
-		if (obj instanceof Alternatives) {			
+
+		if (obj instanceof Alternatives) {
 			Alternatives alternatives = (Alternatives) obj;
 			return parseAlternatives(alternatives, block);
-			
+
 		}
 		if (obj instanceof CrossReference) {
 			CrossReference ref = (CrossReference) obj;
@@ -269,11 +287,11 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 	}
 
 	private boolean parseAlternatives(Alternatives alternatives, Block block) {
-		
+
 		FieldDropdown dropDown = new FieldDropdown("alternativs");
-		ArrayList<Class> alternativeContents = getDropDownArgumentOptions(alternatives, dropDown);		
-	
-		//use a dropdown menu to select between alternatives
+		ArrayList<Class> alternativeContents = getDropDownArgumentOptions(alternatives, dropDown);
+
+		// use a dropdown menu to select between alternatives
 		if (alternatives.getCardinality() == null) {
 			if (alternativeContents.size() == 1 && alternativeContents.get(0) == Keyword.class) {
 				block.addArgument(dropDown);
@@ -322,15 +340,13 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 					blockFeatures.addStatement(rule.getName(), block.getType(), StatementTypes.previousStatement);
 					for (int j = 0; j < contents.size(); j++) {
 						blockFeatures.addStatement(
-								rule.getName(), 
-								getRuleFromAssignment(contents.get(j)).getName(), 
-								StatementTypes.previousStatement
-								);
+								rule.getName(),
+								getRuleFromAssignment(contents.get(j)).getName(),
+								StatementTypes.previousStatement);
 						blockFeatures.addStatement(
-								rule.getName(), 
-								getRuleFromAssignment(contents.get(j)).getName(), 
-								StatementTypes.nextStatement
-								);
+								rule.getName(),
+								getRuleFromAssignment(contents.get(j)).getName(),
+								StatementTypes.nextStatement);
 					}
 				}
 			}
@@ -339,21 +355,22 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 			dropDown.addOption(" ");
 			block.addArgument(dropDown);
 		}
-		
+
 		return true;
 	}
-	
+
 	private AbstractRule getRuleFromAssignment(EObject obj) {
 		Assignment assign = (Assignment) obj;
 		RuleCall ele = (RuleCall) assign.getTerminal();
 		return ele.getRule();
 	}
+
 	/*
-	 * Returns the type of the contents of the array; 
+	 * Returns the type of the contents of the array;
 	 */
 	private ArrayList<Class> getDropDownArgumentOptions(Alternatives alternatives, FieldDropdown dropDown) {
 		ArrayList<Class> contents = new ArrayList<>();
-		
+
 		for (EObject content : alternatives.eContents()) {
 			if (content instanceof Keyword) {
 				Keyword keyWord = (Keyword) content;
@@ -362,11 +379,11 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 					contents.add(Keyword.class);
 				}
 			}
-			
-			if(content instanceof Group) {
+
+			if (content instanceof Group) {
 				String option = "";
 				EList<EObject> groupContent = content.eContents();
-				
+
 				for (EObject groupMember : groupContent) {
 					if (groupMember instanceof Keyword) {
 						Keyword keyWord = (Keyword) groupMember;
@@ -383,7 +400,7 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 			if (content instanceof RuleCall) {
 				RuleCall call = (RuleCall) content;
 				AbstractRule rule = call.getRule();
-				
+
 				dropDown.addRule(rule.getName());
 				if (!contents.contains(RuleCall.class)) {
 					contents.add(RuleCall.class);
@@ -392,7 +409,7 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 			if (content instanceof Assignment) {
 				Assignment assign = (Assignment) content;
 				RuleCall ruleCall = (RuleCall) assign.getTerminal();
-				AbstractRule rule =  ruleCall.getRule();
+				AbstractRule rule = ruleCall.getRule();
 				dropDown.addRule(rule.getName());
 				if (!contents.contains(Assignment.class)) {
 					contents.add(Assignment.class);
@@ -401,8 +418,8 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 		}
 		return contents;
 	}
-	
-	private boolean parseAssignment (Assignment assignment, Block block) {
+
+	private boolean parseAssignment(Assignment assignment, Block block) {
 		if (assignment.getCardinality() == null) {
 			AbstractElement assignmentContent = assignment.getTerminal();
 			if (assignmentContent instanceof RuleCall) {
@@ -427,7 +444,7 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 
 		return true;
 	}
-	
+
 	private void createInputFromAbstractRule(AbstractRule rule, Block block) {
 		InputValue argument = new InputValue("name_" + rule.getName());
 		argument.addCheck(rule.getName());
@@ -448,11 +465,10 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 	}
 
 	private boolean parseKeyword(Keyword keyWord, Block block) {
-		
+
 		if (keyWord.getCardinality() == null) {
 			block.addMessage(keyWord.getValue() + " ");
-		}
-		else if (keyWord.getCardinality().equals("?")) {
+		} else if (keyWord.getCardinality().equals("?")) {
 
 		}
 		return false;
@@ -460,25 +476,25 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 
 	private boolean parseGroup(Group group, Block block) {
 		FieldDropdown argument = new FieldDropdown("optionalGroup");
-		for (AbstractElement groupMember : group.getElements() ) {
+		for (AbstractElement groupMember : group.getElements()) {
 			if (groupMember instanceof Keyword) {
 				Keyword keyWord = (Keyword) groupMember;
 				argument.addOption(keyWord.getValue() + " ");
 			}
 		}
-		
+
 		if (group.getCardinality().equals("?") || group.getCardinality().equals("*")) {
 			if (block.getArgs0().size() > 0 && block.lastIsArg()) {
 				Argument arg = block.getArgs0().get(block.getArgs0().size() - 1);
 				if (arg instanceof InputStatement) {
 					InputStatement in_val = (InputStatement) arg;
-					createSubblock(group, block, in_val); 
+					createSubblock(group, block, in_val);
 					return true;
 				}
 			}
 			InputStatement in_val = new InputStatement(block.getType() + "_input_" + block.getArgCount());
 			block.addArgument(in_val);
-			createSubblock(group, block, in_val); 
+			createSubblock(group, block, in_val);
 		}
 		return true;
 	}
@@ -491,51 +507,49 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 				sb.append("_" + ((Keyword) item).getValue());
 			}
 		});
-		//create sub block
+		// create sub block
 		String block_id = "subBlock_" + block.getType() + sb.toString();
 		Block subBlock = new Block(block_id);
-		
+
 		if (in_val instanceof InputStatement) {
 			subBlock.addPreviousStatement(block_id);
 			if (group.getCardinality() == null) {
-				
-			}
-			else if (group.getCardinality().equals("*") ) {
-				//we should be able to connect two instances of the block type
+
+			} else if (group.getCardinality().equals("*")) {
+				// we should be able to connect two instances of the block type
 				subBlock.addNextStatement(block_id);
 			} else if (group.getCardinality().equals("?")) {
 
 			}
-			//Get the check of the inputstatement
+			// Get the check of the inputstatement
 			ArrayList<String> vals = in_val.getCheck();
 			if (vals.size() > 0) {
-				//Get the last element
+				// Get the last element
 				String val = vals.get(vals.size() - 1);
-				//Make it connect to the last block in the inputstatement
+				// Make it connect to the last block in the inputstatement
 				subBlock.addPreviousStatement(val);
-				//Make the last block in the inputstatement connect to the new subblock
+				// Make the last block in the inputstatement connect to the new subblock
 				blockFeatures.addStatement(val, subBlock.getType(), StatementTypes.nextStatement);
 			}
-			
-			//create input for the subblock
+
+			// create input for the subblock
 			in_val.addCheck(block_id);
 		}
-		
+
 		if (in_val instanceof InputValue) {
 			subBlock.setOutput(block_id);
 			in_val.addCheck(block_id);
 		}
-		
-		
+
 		Category blockCat = block.getBlockCategory();
 		blockCat.addCategoryItem(new CategoryItem(block_id));
-		//do not make categories for subblocks
+		// do not make categories for subblocks
 		subBlock.setBlockCategory(blockCat);
-		
-		//populate the subblock
+
+		// populate the subblock
 		TreeIterator<EObject> it = group.eAllContents();
 		while (it.hasNext()) {
-			//System.out.println("populating subblock " + item);
+			// System.out.println("populating subblock " + item);
 			boolean prune = parseLoop(it.next(), subBlock);
 			if (prune) {
 				it.prune();
@@ -543,136 +557,126 @@ public class AstServiceDispatcher extends XtextServiceDispatcher {
 		}
 		blockArray.add(subBlock);
 	}
-	
+
 	private boolean parseCrossReference(CrossReference ref, Block block) {
-		
-		//Get the type that the CrossReference refers to
-		//TypeRef typeRef = ref.getType();
-		//System.out.println(((GeneratedMetamodel) typeRef.getMetamodel()).getName());
+
+		// Get the type that the CrossReference refers to
+		// TypeRef typeRef = ref.getType();
+		// System.out.println(((GeneratedMetamodel) typeRef.getMetamodel()).getName());
 		;
 		AbstractElement terminal = ref.getTerminal();
 		if (terminal instanceof RuleCall) {
 			RuleCall rule = (RuleCall) terminal;
-			//TODO: Make it such that only an reference (defined by the rule) to a type (defined by the TypeRef) can be placed in the field
+			// TODO: Make it such that only an reference (defined by the rule) to a type
+			// (defined by the TypeRef) can be placed in the field
 			if (rule.getRule() instanceof TerminalRule) {
 				TerminalRule ter = (TerminalRule) rule.getRule();
 				InputValue val = new InputValue(block.getType() + "_" + ter.getName());
 				val.addCheck(ter.getName());
 				block.addArgument(val);
-				
+
 			}
 			System.out.println("rule " + rule);
 			System.out.println(rule.getRule());
 			System.out.println(rule.getArguments());
 		}
-		
+
 		return true;
 	}
-	
+
 	public static String dump(EObject mod_, String indent) {
 		System.out.println("dumping...");
-		
-	    var res = indent + mod_.toString().replaceFirst(".*[.]impl[.](.*)Impl[^(]*", "$1 ");
-	    
-	    for (EObject a :mod_.eCrossReferences()) {
-	        res +=  "-> " + a.toString().replaceFirst(".*[.]impl[.](.*)Impl[^(]*", "$1 ");
-	    }
-	    res += "\n";
-	    for (EObject f :mod_.eContents()) {
-	        res += dump(f, indent+"    ");
-	    }
-	    
-	    return res;
+
+		var res = indent + mod_.toString().replaceFirst(".*[.]impl[.](.*)Impl[^(]*", "$1 ");
+
+		for (EObject a : mod_.eCrossReferences()) {
+			res += "-> " + a.toString().replaceFirst(".*[.]impl[.](.*)Impl[^(]*", "$1 ");
+		}
+		res += "\n";
+		for (EObject f : mod_.eContents()) {
+			res += dump(f, indent + "    ");
+		}
+
+		return res;
 	}
-	
-	public static ArrayList<CategoryItem> handleDuplicateCategoryItems(Category oldCategory, ArrayList<Block> blockDefinitions) 
-	{
-		ArrayList<CategoryItem> newCategoryItems = new ArrayList<>(); 
-		
-		int index = 0;
-        for (CategoryItem i : oldCategory.getContents())
-        {
-        	if (!newCategoryItems.stream().anyMatch(ci -> ci.getType().equals(i.getType())))
-        	{
-        		index = 0;
-            	newCategoryItems.add(i);
-        	}
-        	else
-        	{
-        		String newType = i.getType() + index;
-        		if (blockDefinitions.stream().anyMatch(b -> b.getType().equals(newType))) // only add it if we have a block definition for it.
-        		{
-        			i.setType(newType);
-        			newCategoryItems.add(i);
-        			index++;
-        		}
-        	}
-        }
-        
-        return newCategoryItems; 
-	}
-	
-	public static ArrayList<Block> handleDuplicateBlocks(ArrayList<Block> oldBlocks) 
-    { 
-		System.out.println("helloooooooo");
-		
-		ArrayList<Block> newBlocks = new ArrayList<>(); 
+
+	public static ArrayList<CategoryItem> handleDuplicateCategoryItems(Category oldCategory,
+			ArrayList<Block> blockDefinitions) {
+		ArrayList<CategoryItem> newCategoryItems = new ArrayList<>();
 
 		int index = 0;
-        for (Block b : oldBlocks)
-        {
-            if (!newBlocks.stream().anyMatch(nb -> nb.getType().equals(b.getType())))
-            {
-            	
-            	index = 0;            	
-            	newBlocks.add(b);
-            }
-            else if (!newBlocks.stream().anyMatch(nb -> blocksHaveEqualArgs(nb, b)))
-			{
-            	Block blockToAdd = new Block(b.getTooltip() + index);
-        		b.setTooltip(b.getTooltip() + index);
-        		b.setType(b.getType() + index);
-        		b.setColour(blockToAdd.getColour());
-        		newBlocks.add(b);
+		for (CategoryItem i : oldCategory.getContents()) {
+			if (!newCategoryItems.stream().anyMatch(ci -> ci.getType().equals(i.getType()))) {
+				index = 0;
+				newCategoryItems.add(i);
+			} else {
+				String newType = i.getType() + index;
+				if (blockDefinitions.stream().anyMatch(b -> b.getType().equals(newType))) // only add it if we have a
+																							// block definition for it.
+				{
+					i.setType(newType);
+					newCategoryItems.add(i);
+					index++;
+				}
 			}
-        } 
+		}
 
-        return newBlocks; 
-    }
-	
-	public static boolean blocksHaveEqualArgs(Block b1, Block b2)
-	{
+		return newCategoryItems;
+	}
+
+	public static ArrayList<Block> handleDuplicateBlocks(ArrayList<Block> oldBlocks) {
+		System.out.println("helloooooooo");
+
+		ArrayList<Block> newBlocks = new ArrayList<>();
+
+		int index = 0;
+		for (Block b : oldBlocks) {
+			if (!newBlocks.stream().anyMatch(nb -> nb.getType().equals(b.getType()))) {
+
+				index = 0;
+				newBlocks.add(b);
+			} else if (!newBlocks.stream().anyMatch(nb -> blocksHaveEqualArgs(nb, b))) {
+				Block blockToAdd = new Block(b.getTooltip() + index);
+				b.setTooltip(b.getTooltip() + index);
+				b.setType(b.getType() + index);
+				b.setColour(blockToAdd.getColour());
+				newBlocks.add(b);
+			}
+		}
+
+		return newBlocks;
+	}
+
+	public static boolean blocksHaveEqualArgs(Block b1, Block b2) {
 		if (b1.getArgCount() != b2.getArgCount())
 			return false;
-		
-		for (int i = 0; i < b1.getArgs0().size(); i++)
-		{
+
+		for (int i = 0; i < b1.getArgs0().size(); i++) {
 			Argument argument1 = b1.getArgs0().get(i);
 			Argument argument2 = b2.getArgs0().get(i);
-			
+
 			if (!argument1.getType().equals(argument2.getType()) || !argument1.getName().equals(argument2.getName()))
 				return false;
-			
+
 			if (!(argument1 instanceof InputArgument && argument2 instanceof InputArgument))
 				return false;
-			
+
 			InputArgument inputArgument1 = (InputArgument) argument1;
 			InputArgument inputArgument2 = (InputArgument) argument2;
-			
-			// make sure the check arrays are the same	
+
+			// make sure the check arrays are the same
 			if (inputArgument1.getCheck().size() != inputArgument2.getCheck().size())
 				return false;
-			
-			for (int j = 0; j < inputArgument1.getCheck().size(); j++)
-			{
+
+			for (int j = 0; j < inputArgument1.getCheck().size(); j++) {
 				String check1 = inputArgument1.getCheck().get(j);
 				String check2 = inputArgument2.getCheck().get(j);
-				
+
 				if (!check1.equals(check2))
 					return false;
 			}
-		}		
-		
+		}
+
 		return true;
 	}
 }
