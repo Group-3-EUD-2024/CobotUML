@@ -317,22 +317,6 @@ input[type="range"] ,
 
 .tool:hover{
 }
-
-.circle {
-	width: 2rem;
-	aspect-ratio: 1/1;
-	border-radius: 100%;
-	background-color: transparent;
-	border: 2px solid #222222;
-}
-
-.square{
-	width: 2rem;
-	aspect-ratio: 1/1;
-	border-radius: 0;
-	background-color: transparent;
-	border: 2px solid #222222;
-}
 .class{ 
 	display: flex;
 	flex-direction: column;
