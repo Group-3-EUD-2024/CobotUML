@@ -507,6 +507,8 @@ function loadUMLDiagram(umlJson) {
 		let ghostEl;
         // Handle drag and drop for elements
         const toolbox = document.getElementById('toolbox');
+		const editContainer = document.getElementById('element_settings_container');
+		editContainer.style.display = 'none'
 
         toolbox.addEventListener('dragstart', (event) => {
             event.dataTransfer.setData('text/plain', event.target.id);
@@ -534,119 +536,77 @@ function loadUMLDiagram(umlJson) {
 
             // Create shapes based on the dragged button
             let cell;
-            switch (id) {
-				case 'drawSquare':
-	                cell = new namespace.standard.Rectangle({
-	                    position: { x: position.x, y: position.y },
-	                    size: { width: 80, height: 80 },
-	                    attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Square', fill: 'white' } }
-	                });
-                	break;
-                case 'drawCircle':
-                    cell = new namespace.standard.Ellipse({
-                        position: { x: position.x, y: position.y },
-                        size: { width: 80, height: 80 },
-                        attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
-                    });
-                    break; 
-				case 'drawClass':
-					// Define the custom shape with dia.MarkupJSON
-					cell = new namespace.standard.HeaderedRectangle();
-					cell .resize(100, 100);
-					cell .position(position.x, position.y);
-					cell .attr('root/title', 'shapes.standard.HeaderedRectangle');
-					cell .attr('header/fill', 'lightgray');
-					cell .attr('headerText/text', 'Header');
-					cell .attr('bodyText/text', 'Headered\nRectangle');
+			switch (id) {
+				case 'drawModel':
+					cell = new namespace.noteditable.model({
+						position: { x: position.x, y: position.y },
+						size: { width: 80, height: 40 },
+						attrs: {
+							polygon: { fill: '#f6a600' },
+							label: { text: 'Model', fill: '#000000' }
+						}
+					});
+					break;
+				case 'drawImperativeEntity':
+					cell = new namespace.noteditable.imperativeEntity({
+						position: { x: position.x, y: position.y },
+						size: { width: 120, height: 40 },
+						attrs: {
+							polygon: { fill: '#f6a600' },
+							label: { text: 'Imperative Entity', fill: '#000000' }
+						}
+					});
+					break;
+				case 'drawProperties':
+					cell = new namespace.noteditable.properties({
+						position: { x: position.x, y: position.y },
+						size: { width: 120, height: 40 },
+						attrs: {
+							polygon: { fill: '#f6a600' },
+							label: { text: 'Properties', fill: '#000000' }
+						}
+					});
+					break;
+				case 'drawStates':
+					cell = new namespace.noteditable.states({
+						position: { x: position.x, y: position.y },
+						size: { width: 120, height: 40 },
+						attrs: {
+							polygon: { fill: '#f6a600' },
+							label: { text: 'States', fill: '#000000' }
+						}
+					});
+					break;
+				case 'drawID':
+					cell = new namespace.editable.id({
+						position: { x: position.x, y: position.y },
+						size: { width: 120, height: 40 },
+						attrs: {
+							polygon: { fill: '#f6a600' },
+							label: { text: 'Enter ID...', fill: '#000000' }
+						}
+					});
+					break;
             }
 
             if (cell) {
                 graph.addCell(cell);
-				/*
-				const doubleLink = new namespace.standard.DoubleLink();
-				doubleLink.prop('source', { x: 500, y: 600 });
-				doubleLink.prop('target', { x: 450, y: 750 });
-				doubleLink.prop('vertices', [{ x: 500, y: 700 }]);
-				doubleLink.attr('root/title', 'shapes.standard.DoubleLink');
-				doubleLink.attr('line/stroke', '#30d0c6');
-				graph.addCell(doubleLink);
-				
-				const path = new namespace.standard.Path();
-				path.resize(100, 100);
-				path.position(50, 210);
-				path.attr('root/title', 'shapes.standard.Path');
-				path.attr('label/text', 'Path');
-				path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
-				graph.addCell(path);
-				const polyline = new namespace.standard.Polyline();
-				polyline.resize(100, 100);
-				polyline.position(450, 210);
-				polyline.attr('root/title', 'shapes.standard.Polyline');
-				polyline.attr('label/text', 'Polyline');
-				polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
-				graph.addCell(polyline);
-				const shadowLink = new namespace.standard.ShadowLink();
-				shadowLink.prop('source', { x: 550, y: 600 });
-				shadowLink.prop('target', { x: 500, y: 750 });
-				shadowLink.prop('vertices', [{ x: 550, y: 700 }]);
-				shadowLink.attr('root/title', 'shapes.standard.ShadowLink');
-				shadowLink.attr('line/stroke', '#5654a0');	
-				graph.addCell(shadowLink);	
-				const textBlock = new namespace.standard.TextBlock();
-				textBlock.resize(100, 100);
-				textBlock.position(250, 610);
-				textBlock.attr('root/title', 'shapes.standard.TextBlock');
-				textBlock.attr('body/fill', 'lightgray');
-				textBlock.attr('label/text', 'Hyper Text Markup Language');
-				// Styling of the label via `style` presentation attribute (i.e. CSS).
-				textBlock.attr('label/style/color', 'red');
-				graph.addCell(textBlock);
-				// Define a custom shape with SVG markup
-				const CustomSVGShape = joint.dia.Element.define('custom.SVGShape', {
-				    size: { width: 100, height: 100 },
-				    attrs: {
-				        body: {
-				            // Styles for the SVG path (like a star shape)
-				            fill: '#FFD700',
-				            stroke: '#FFA500',
-				            strokeWidth: 2,
-				        },
-				        label: {
-				            text: 'Custom SVG Shape',
-				            fontSize: 12,
-				            fill: '#000',
-				            refX: '50%',
-				            refY: '50%',
-				            textAnchor: 'middle',
-				            textVerticalAnchor: 'middle'
-				        }
-				    }
-				}, {
-				    markup: `
-				        <g class="body">
-				            <path d="M50 15 L61 35 L82 35 L66 50 L71 71 L50 60 L29 71 L34 50 L18 35 L39 35 Z"/>
-				            <text class="label"/>
-				        </g>
-				    `
-				});
-
-				// Create an instance and add it to the graph
-				const customSVGInstance = new CustomSVGShape();
-				customSVGInstance.position(250, 610); // Set the position of your choice
-				customSVGInstance.resize(100, 100); // Adjust size as needed
-				graph.addCell(customSVGInstance);
-				*/
-
-
-				
             }
 			exportDiagramAsJSON(graph);
         });
 		let sourceElement = null; 
 		paper.on('element:pointerclick', function(cellView) {
 	        sourceElement = cellView.model;
-	        editFigure(sourceElement);
+			
 			console.log(sourceElement.attributes.type);
+			console.log(sourceElement.attributes.type.includes("editable"));
+			if (sourceElement.attributes.type.includes("noteditable") == true) {
+				editContainer.style.display = 'none';
+			} else {
+				editContainer.style.display = 'flex';
+				editFigure(sourceElement);
+			}
+			
 			exportDiagramAsJSON(graph);
 			paper.off('cell:pointerclick', arguments.callee);
 		});
@@ -736,6 +696,7 @@ function loadUMLDiagram(umlJson) {
 				paper.off('cell:pointerclick', arguments.callee);
 		    });
 		}
+		
 	function editLink(selectedLink){
 		let colorPicker = document.getElementById('fillColorPicker');
 		const colorPickerLabel = document.querySelector('label[for="fillColorPicker"]');
@@ -745,15 +706,6 @@ function loadUMLDiagram(umlJson) {
 		const textAreaInputLabel = document.querySelector('label[for="textAreaInput"]'); 
 		let textColorPicker = document.getElementById('textColorPicker');
 		const textColorPickerLabel = document.querySelector('label[for="textColorPicker"]');
-		let strokeWidth = document.getElementById('strokeWidth');
-		const strokeWidthLabel = document.querySelector('label[for="strokeWidth"]');
-		let widthSize = document.getElementById('widthSize');
-		const widthSizeLabel = document.querySelector('label[for="widthSize"]');
-		let heightSize = document.getElementById('heightSize');
-		const heightSizeLabel = document.querySelector('label[for="heightSize"]');
-		let rotation = document.getElementById('rotation');
-		const rotationLabel = document.querySelector('label[for="rotation"]');
-		let routerType = document.getElementById('routerType'); 
 		const routerTypeLabel = document.querySelector('label[for="routerType"]'); 
 	    let connectorType = document.getElementById('connectorType');
 		const connectorTypeLabel = document.querySelector('label[for="connectorType"]');
@@ -765,17 +717,6 @@ function loadUMLDiagram(umlJson) {
 		connectorTypeLabel.style.display = 'block';
 		linkShape.style.display = 'block';
 		linkShapeLabel.style.display = 'block'
-		// These elements cannot be used for styling link
-		strokeColorPicker.style.display = 'none';
-		strokeColorPickerLabel.style.display = 'none';
-		strokeWidth.style.display = 'none';
-		strokeWidthLabel.style.display = 'none';
-		widthSize.style.display = 'none';
-		widthSizeLabel.style.display = 'none';
-		heightSize.style.display = 'none';
-		heightSizeLabel.style.display = 'none';
-		rotation.style.display = 'none';
-		rotationLabel.style.display = 'none';
 		
 		// Remove previous listeners by cloning each input
 	    function removeListeners(input) {
@@ -888,6 +829,7 @@ function loadUMLDiagram(umlJson) {
 		        newLink.connector(oldLink.get('connector'));
 		    }
 	}
+	
 	function editFigure(selectedElement){
 		let colorPicker = document.getElementById('fillColorPicker');
 		const colorPickerLabel = document.querySelector('label[for="fillColorPicker"]');
@@ -897,14 +839,6 @@ function loadUMLDiagram(umlJson) {
 		const textAreaInputLabel = document.querySelector('label[for="textAreaInput"]'); 
 		let textColorPicker = document.getElementById('textColorPicker');
 		const textColorPickerLabel = document.querySelector('label[for="textColorPicker"]');
-		let strokeWidth = document.getElementById('strokeWidth');
-		const strokeWidthLabel = document.querySelector('label[for="strokeWidth"]');
-		let widthSize = document.getElementById('widthSize');
-		const widthSizeLabel = document.querySelector('label[for="widthSize"]');
-		let heightSize = document.getElementById('heightSize');
-		const heightSizeLabel = document.querySelector('label[for="heightSize"]');
-		let rotation = document.getElementById('rotation');
-		const rotationLabel = document.querySelector('label[for="rotation"]');
 		let routerType = document.getElementById('routerType'); 
 		const routerTypeLabel = document.querySelector('label[for="routerType"]'); 
 	    let connectorType = document.getElementById('connectorType');
@@ -917,16 +851,6 @@ function loadUMLDiagram(umlJson) {
 		connectorTypeLabel.style.display = 'none';
 		linkShape.style.display = 'none';
 		linkShapeLabel.style.display = 'none';
-		strokeColorPicker.style.display = 'block';
-		strokeColorPickerLabel.style.display = 'block';
-		strokeWidth.style.display = 'block';
-		strokeWidthLabel.style.display = 'block';
-		widthSize.style.display = 'block';
-		widthSizeLabel.style.display = 'block';
-		heightSize.style.display = 'block';
-		heightSizeLabel.style.display = 'block';
-		rotation.style.display = 'block';
-		rotationLabel.style.display = 'block';
 		if (selectedElement.attributes.type == "standard.HeaderedRectangle") {
 			textColorPicker.style.display = 'none';
 			textColorPickerLabel.style.display = 'none';
@@ -945,19 +869,12 @@ function loadUMLDiagram(umlJson) {
 	    strokeColorPicker = removeListeners(strokeColorPicker);
 	    textAreaInput = removeListeners(textAreaInput);
 		textColorPicker = removeListeners(textColorPicker);
-	    strokeWidth = removeListeners(strokeWidth);
-	    widthSize = removeListeners(widthSize);
-	    heightSize = removeListeners(heightSize);
-	    rotation = removeListeners(rotation);
 		
 		colorPicker.value = selectedElement.attr('body/fill') || '#000000';
 		strokeColorPicker.value = selectedElement.attr('body/stroke') || '#000000';
 		textAreaInput.value = selectedElement.attributes.type == "standard.HeaderedRectangle" && selectedElement.attr('headerText/text') + "\n" + selectedElement.attr('bodyText/text') || selectedElement.attr('label/text') || '';
 		textColorPicker.value = selectedElement.attr('label/fill') || '#000000';
-		strokeWidth.value = selectedElement.attr('body/strokeWidth') || 2;
-		widthSize.value = selectedElement.size().width || 80;
-		heightSize.value = selectedElement.size().height || 80;
-		rotation.value = selectedElement.angle() || 0;
+		
 		colorPicker.addEventListener('input',function (event) {
 			if (selectedElement) {
 			    selectedElement.attr('body/fill', event.target.value);
@@ -982,25 +899,6 @@ function loadUMLDiagram(umlJson) {
 						selectedElement.attr('headerText/text',part1);
 						selectedElement.attr('bodyText/text',part2);						
 				    }
-				/*
-				selectedElement.attr({
-					attrs:{
-						root:{
-							"headerText": event.target.value 
-						}
-						label: {
-					        'font-size': 12,
-					        'text-anchor': 'middle',
-					        'text-vertical-anchor': 'middle',
-					        'ref-y': 0.5,
-					        'y-alignment': 'middle',
-					        'white-space': 'pre-wrap'
-					    }
-						
-					}
-				    
-				});
-				*/
 			}
 			else {
 				selectedElement.attr({
@@ -1022,28 +920,9 @@ function loadUMLDiagram(umlJson) {
 				selectedElement.attr('label/fill', event.target.value);
 			}
 	    });
-		strokeWidth.addEventListener('input', function(event) {
-		    if (selectedElement) {
-		        selectedElement.attr('body/strokeWidth', event.target.value);
-		    }
-		});
-		widthSize.addEventListener('input', function(event) {
-		    if (selectedElement) {
-		        selectedElement.resize(parseInt(event.target.value), selectedElement.size().height);
-		    }
-		});
-		heightSize.addEventListener('input', function(event) {
-		    if (selectedElement) {
-		        selectedElement.resize(selectedElement.size().width, parseInt(event.target.value));
-		    }
-		});
-		rotation.addEventListener('input', function(event) {
-		    if (selectedElement) {
-		        selectedElement.rotate(parseInt(event.target.value));
-		    }
-		});
 	}
 }
+
 function exportDiagramAsJSON(graph) {
     const json = graph.toJSON();
     const jsonString = JSON.stringify(json, null, 2); // Pretty-print with indentation
@@ -1072,6 +951,7 @@ function exportDiagramAsJSON(graph) {
     
     return jsonString;
 }
+
 function switchToBlock() {
 	if(currentTab.id== "entity-tab"){
 		document.getElementById('blockly-editor').style.display = "block";
@@ -1142,45 +1022,6 @@ function runScenario() {
       alert('Error running scenario.');
     }
   });
-}
-
-function runExampleUml(){
-	var namespace = joint.shapes;
-
-	        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
-
-	        var paper = new joint.dia.Paper({
-	            el: document.getElementById('xtext-editor-diagrams'),
-	            model: graph,
-	            width: 800,
-	            height: 800,
-	            gridSize: 1,
-	            cellViewNamespace: namespace
-	        });
-
-	        var rect = new joint.shapes.standard.Rectangle();
-	        rect.position(100, 30);
-	        rect.resize(100, 40);
-	        rect.attr({
-	            body: {
-	                fill: 'blue'
-	            },
-	            label: {
-	                text: 'Hello',
-	                fill: 'white'
-	            }
-	        });
-	        rect.addTo(graph);
-
-	        var rect2 = rect.clone();
-	        rect2.translate(300, 0);
-	        rect2.attr('label/text', 'World!');
-	        rect2.addTo(graph);
-
-	        var link = new joint.shapes.standard.Link();
-	        link.source(rect);
-	        link.target(rect2);
-	        link.addTo(graph);
 }
 
 

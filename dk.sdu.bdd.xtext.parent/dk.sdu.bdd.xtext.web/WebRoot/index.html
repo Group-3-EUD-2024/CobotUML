@@ -63,19 +63,15 @@
               <img class="mouse-tool" src="/assets/icons/move-icon.png" draggable="false" id="movePaperMouse"></img>
               <img class="mouse-tool selected" src="assets/icons/arrow-icon.png" draggable="false" id="defaultMouse"></img>
             </div>
-            <div class="hr"></div>
-            <div class="tool circle" draggable="true" id="drawCircle">Circle</div>
-            <div class="tool square" draggable="true" id="drawSquare">Square</div>
-            <div class="tool class" draggable="true" id="drawClass">
-		      <div>
-			      Class
-		      </div>
-              <div>
-					Body
-              </div>
-	      	</div>
+			<h4>Static Blocks</h4>
+			<div class="tool" draggable="true" id="drawModel">Model</div>
+			<div class="tool" draggable="true" id="drawImperativeEntity">Imperative Entity</div>
+			<div class="tool" draggable="true" id="drawProperties">Properties</div>
+			<div class="tool" draggable="true" id="drawStates">States</div>
+			<h4>ID Block</h4>
+			<div class="tool" draggable="true" id="drawID">ID</div>
           </div>
-          <div class="style-container">
+          <div class="style-container" id="element_settings_container">
             <h4>Selected Element settings</h4>
             <label for="fillColorPicker">Fill Color:</label>
             <input type="color" id="fillColorPicker" value="#000000">
@@ -85,14 +81,6 @@
             <textarea id="textAreaInput" placeholder="Enter text here"></textarea>
             <label for="textColorPicker">Text Color:</label>
             <input type="color" id="textColorPicker" value="#000000">
-            <label for="strokeWidth">Stroke Width:</label>
-            <input type="range" id="strokeWidth" min="1" max="10" value="2">
-            <label for="widthSize">Width:</label>
-            <input type="range" id="widthSize" min="20" max="1000" value="80">
-            <label for="heightSize">Height:</label>
-            <input type="range" id="heightSize" min="20" max="1000" value="80">
-            <label for="rotation">Rotation:</label>
-            <input type="range" id="rotation" min="0" max="360" value="0">
 			<label for="linkShape" style="display: none;">Link Shape:</label>
 		    <select id="linkShape" style="display: none;">
 				<option value="standard.Link">Standard Link</option>
