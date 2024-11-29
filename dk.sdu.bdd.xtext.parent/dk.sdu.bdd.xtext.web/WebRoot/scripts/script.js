@@ -537,20 +537,6 @@ function loadUMLDiagram(umlJson) {
             // Create shapes based on the dragged button
             let cell;
             switch (id) {
-				case 'drawSquare':
-	                cell = new namespace.standard.Rectangle({
-	                    position: { x: position.x, y: position.y },
-	                    size: { width: 80, height: 80 },
-	                    attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Square', fill: 'white' } }
-	                });
-                	break;
-                case 'drawCircle':
-                    cell = new namespace.standard.Ellipse({
-                        position: { x: position.x, y: position.y },
-                        size: { width: 80, height: 80 },
-                        attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
-                    });
-                    break; 
 				case 'drawClass':
 					// Define the custom shape with dia.MarkupJSON
 					cell = new namespace.standard.HeaderedRectangle();
@@ -1070,6 +1056,7 @@ function runScenario() {
   });
 }
 
+<<<<<<< HEAD
 function runExampleUml(){
 	var namespace = joint.shapes;
 
@@ -1110,3 +1097,5 @@ function runExampleUml(){
 }
 
 
+=======
+>>>>>>> main
