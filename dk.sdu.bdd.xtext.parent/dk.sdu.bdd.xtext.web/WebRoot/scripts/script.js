@@ -173,6 +173,7 @@ function onEntityEditorChange() {
 				if (currentAst !== response.ast)
 				{
 					generateBlocksFromAst(response.ast, entityWorkspace, blockArray, 'entities');
+					generateUMLClassFromAst(response.ast, umlWorkspace, 'entities');
 					currentAst = response.ast;
 					console.log(response.ast);
 				}
@@ -423,7 +424,8 @@ function switchToUml() {
 	loadUMLDiagram(umlJson);
 
 }
-let graph = null;
+
+
 function enableCanvasPanning(paper) {
     let lastMousePosition = { x: 0, y: 0 };
 	const panningMouse = document.getElementById("movePaperMouse");
@@ -485,22 +487,22 @@ function enableCanvasZoom(paper) {
     });
 }
 function loadUMLDiagram(umlJson) {
-		if (graph) {
+		if (umlWorkspace) {
 	        return; 
 	    }
         var namespace = joint.shapes;
-        graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+        umlWorkspace = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('uml-canvas'),
-            model: graph,
+            model: umlWorkspace,
             width: "100%",
             height: "100%",
             gridSize: 1,
             drawGrid: true,
         });
 		if(umlJson){
-			graph.fromJSON(umlJson);
+			umlWorkspace.fromJSON(umlJson);
 		}
 		enableCanvasPanning(paper);
 		enableCanvasZoom(paper);
@@ -561,100 +563,24 @@ function loadUMLDiagram(umlJson) {
             }
 
             if (cell) {
-                graph.addCell(cell);
-				/*
-				const doubleLink = new namespace.standard.DoubleLink();
-				doubleLink.prop('source', { x: 500, y: 600 });
-				doubleLink.prop('target', { x: 450, y: 750 });
-				doubleLink.prop('vertices', [{ x: 500, y: 700 }]);
-				doubleLink.attr('root/title', 'shapes.standard.DoubleLink');
-				doubleLink.attr('line/stroke', '#30d0c6');
-				graph.addCell(doubleLink);
-				
-				const path = new namespace.standard.Path();
-				path.resize(100, 100);
-				path.position(50, 210);
-				path.attr('root/title', 'shapes.standard.Path');
-				path.attr('label/text', 'Path');
-				path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
-				graph.addCell(path);
-				const polyline = new namespace.standard.Polyline();
-				polyline.resize(100, 100);
-				polyline.position(450, 210);
-				polyline.attr('root/title', 'shapes.standard.Polyline');
-				polyline.attr('label/text', 'Polyline');
-				polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
-				graph.addCell(polyline);
-				const shadowLink = new namespace.standard.ShadowLink();
-				shadowLink.prop('source', { x: 550, y: 600 });
-				shadowLink.prop('target', { x: 500, y: 750 });
-				shadowLink.prop('vertices', [{ x: 550, y: 700 }]);
-				shadowLink.attr('root/title', 'shapes.standard.ShadowLink');
-				shadowLink.attr('line/stroke', '#5654a0');	
-				graph.addCell(shadowLink);	
-				const textBlock = new namespace.standard.TextBlock();
-				textBlock.resize(100, 100);
-				textBlock.position(250, 610);
-				textBlock.attr('root/title', 'shapes.standard.TextBlock');
-				textBlock.attr('body/fill', 'lightgray');
-				textBlock.attr('label/text', 'Hyper Text Markup Language');
-				// Styling of the label via `style` presentation attribute (i.e. CSS).
-				textBlock.attr('label/style/color', 'red');
-				graph.addCell(textBlock);
-				// Define a custom shape with SVG markup
-				const CustomSVGShape = joint.dia.Element.define('custom.SVGShape', {
-				    size: { width: 100, height: 100 },
-				    attrs: {
-				        body: {
-				            // Styles for the SVG path (like a star shape)
-				            fill: '#FFD700',
-				            stroke: '#FFA500',
-				            strokeWidth: 2,
-				        },
-				        label: {
-				            text: 'Custom SVG Shape',
-				            fontSize: 12,
-				            fill: '#000',
-				            refX: '50%',
-				            refY: '50%',
-				            textAnchor: 'middle',
-				            textVerticalAnchor: 'middle'
-				        }
-				    }
-				}, {
-				    markup: `
-				        <g class="body">
-				            <path d="M50 15 L61 35 L82 35 L66 50 L71 71 L50 60 L29 71 L34 50 L18 35 L39 35 Z"/>
-				            <text class="label"/>
-				        </g>
-				    `
-				});
-
-				// Create an instance and add it to the graph
-				const customSVGInstance = new CustomSVGShape();
-				customSVGInstance.position(250, 610); // Set the position of your choice
-				customSVGInstance.resize(100, 100); // Adjust size as needed
-				graph.addCell(customSVGInstance);
-				*/
-
-
-				
+                umlWorkspace.addCell(cell);
             }
-			exportDiagramAsJSON(graph);
+			
+			exportDiagramAsJSON(umlWorkspace);
         });
 		let sourceElement = null; 
 		paper.on('element:pointerclick', function(cellView) {
 	        sourceElement = cellView.model;
 	        editFigure(sourceElement);
 			console.log(sourceElement.attributes.type);
-			exportDiagramAsJSON(graph);
+			exportDiagramAsJSON(umlWorkspace);
 			paper.off('cell:pointerclick', arguments.callee);
 		});
 		paper.on('link:pointerclick', function(linkView) {
 		    const clickedLink = linkView.model;
 		    console.log("Link clicked:", clickedLink);
 			editLink(clickedLink);
-		    exportDiagramAsJSON(graph);
+		    exportDiagramAsJSON(umlWorkspace);
 		});
 		document.addEventListener('contextmenu',(event)=> {
 			event.preventDefault();
@@ -696,7 +622,7 @@ function loadUMLDiagram(umlJson) {
 		    };
 			removeOption.onclick = () => {
 		        sourceElement.remove();
-				exportDiagramAsJSON(graph);
+				exportDiagramAsJSON(umlWorkspace);
 		    };
 		    document.addEventListener('click', function removeMenu() {
 		        if (menu.parentNode) {
@@ -723,7 +649,7 @@ function loadUMLDiagram(umlJson) {
 		            const link = new joint.shapes.standard.Link();
 		            link.source(selectedElement);
 		            link.target(targetView.model);
-		            link.addTo(graph);
+		            link.addTo(umlWorkspace);
 		            // Remove highlighting from the source element
 		            joint.dia.HighlighterView.remove(sourceView, 'my-element-highlight');
 		            sourceElement = null; // Reset the source element
@@ -732,7 +658,7 @@ function loadUMLDiagram(umlJson) {
 		            joint.dia.HighlighterView.remove(sourceView, 'my-element-highlight');
 		            sourceElement = null;
 		        }
-		        exportDiagramAsJSON(graph); // Export the updated diagram
+		        exportDiagramAsJSON(umlWorkspace); // Export the updated diagram
 				paper.off('cell:pointerclick', arguments.callee);
 		    });
 		}
@@ -816,7 +742,7 @@ function loadUMLDiagram(umlJson) {
 	                position: 0.5 // Position in the middle of the link
 	            });
 			}
-			exportDiagramAsJSON(graph);
+			exportDiagramAsJSON(umlWorkspace);
 		})
 		textColorPicker.addEventListener('input', (event) => {
 			if (selectedLink) {
@@ -862,9 +788,9 @@ function loadUMLDiagram(umlJson) {
 			    newLink.target(selectedLink.target());
 				// Copy all attributes from the old link to the new link
 	            copyAttributes(selectedLink, newLink);
-				// Remove the old link from the graph
-				graph.getCell(selectedLink.id).remove();
-				graph.addCell(newLink);
+				// Remove the old link from the umlWorkspace
+				umlWorkspace.getCell(selectedLink.id).remove();
+				umlWorkspace.addCell(newLink);
 				selectedLink = newLink;
 		})
 		function copyAttributes(oldLink, newLink) {
@@ -1015,7 +941,7 @@ function loadUMLDiagram(umlJson) {
 				    }
 				});
 			}
-			exportDiagramAsJSON(graph);
+			exportDiagramAsJSON(umlWorkspace);
 		})
 		textColorPicker.addEventListener('input', (event) => {
 			if (selectedElement) {
@@ -1044,8 +970,8 @@ function loadUMLDiagram(umlJson) {
 		});
 	}
 }
-function exportDiagramAsJSON(graph) {
-    const json = graph.toJSON();
+function exportDiagramAsJSON(umlWorkspace) {
+    const json = umlWorkspace.toJSON();
     const jsonString = JSON.stringify(json, null, 2); // Pretty-print with indentation
     console.log(jsonString);
 	if(jsonString){
@@ -1147,11 +1073,11 @@ function runScenario() {
 function runExampleUml(){
 	var namespace = joint.shapes;
 
-	        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+	        var umlWorkspace = new joint.dia.Graph({}, { cellNamespace: namespace });
 
 	        var paper = new joint.dia.Paper({
 	            el: document.getElementById('xtext-editor-diagrams'),
-	            model: graph,
+	            model: umlWorkspace,
 	            width: 800,
 	            height: 800,
 	            gridSize: 1,
@@ -1170,17 +1096,17 @@ function runExampleUml(){
 	                fill: 'white'
 	            }
 	        });
-	        rect.addTo(graph);
+	        rect.addTo(umlWorkspace);
 
 	        var rect2 = rect.clone();
 	        rect2.translate(300, 0);
 	        rect2.attr('label/text', 'World!');
-	        rect2.addTo(graph);
+	        rect2.addTo(umlWorkspace);
 
 	        var link = new joint.shapes.standard.Link();
 	        link.source(rect);
 	        link.target(rect2);
-	        link.addTo(graph);
+	        link.addTo(umlWorkspace);
 }
 
 
