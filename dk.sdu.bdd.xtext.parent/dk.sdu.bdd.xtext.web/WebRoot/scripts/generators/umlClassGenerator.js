@@ -1,3 +1,50 @@
+let returnJson = {
+	"cells": []
+};
+
+function generateUMLClassJsonCell(header, methods) {
+	cell = {
+		"type": "standard.HeaderedRectangle",
+		"position": {
+			"x": 100,
+			"y": 100
+		},
+		"size": {
+			"width": 100,
+			"height": 100
+		},
+		"angle": 0,
+        "id": "",
+        "z": 1,
+		"attrs": {
+			"root": {
+				"title": "shapes.standard.HeaderedRectangle"
+			},
+			"header": {
+				"fill": "lightgray"
+			},
+			"headerText": {},
+			"bodyText": {}
+        }
+	};
+	
+	cell['attrs']['headerText'] = header;
+	
+	let bodytext = ""
+	
+	for (const method of methods) {
+		if (method == methods[methods.length - 1]) {
+			bodytext.concat(method)
+		} else {
+			bodytext.concat(method, "\n")	
+		}
+	}
+	
+	cell['attrs']['bodyText'] = bodytext;
+	
+	returnJson['cells'].push(cell);
+}
+
 function generateUMLClassFromAst(ast, workspace, tabName) {
     if (!workspace || !ast || !ast._children)
         return;
@@ -6,18 +53,20 @@ function generateUMLClassFromAst(ast, workspace, tabName) {
 
     if (tabName === 'entities' && ast._children.length > 0)
     {
-        generateBlocks(ast._children[ast._children.length - 1], workspace, null); // entities are here
+        generateClassUML(ast._children[ast._children.length - 1], null); // entities are here
     }
 
     if (tabName === 'scenarios' && ast._children.length > 1)
     {
-        generateBlocks(ast._children[0], workspace, null); // scenarios are here
+        // generateBlocks(ast._children[0], workspace, null); // scenarios are here
     }
-
-    workspace.render();
+	
+	// Load UML Diagram with generated classes
+	// Pass generated json
+	loadUMLDiagram(returnJson);
 }
 
-function generateClassUML(root, workspace, parentClassUML) {
+function generateClassUML(root, parentClassUML) {
 	if (!root || !root._children)
 	        return;
 
@@ -41,8 +90,11 @@ function generateClassUML(root, workspace, parentClassUML) {
 
             var parsedObj = parseValueString(current.value._value);    
             if (parsedObj && parsedObj.type) {
-                var addedClassUML = addClassUMLToWorkspace(parsedObj, workspace, parentClassUML); 
-                currentParentClassUML = addedClassUML ? addedClassUML : parentClassUML;
+                var addedClassUML = createJsonCellForObj(parsedObj, parentClassUML); 
+				
+				// umlClassJson['cells'].push(addedClassUML);
+				
+				currentParentClassUML = addedClassUML ? addedClassUML : parentClassUML;
             }
             else
             {
@@ -51,24 +103,27 @@ function generateClassUML(root, workspace, parentClassUML) {
         }
 
         if (current.nodes) {
-            generateClassUML(current.nodes, workspace, currentParentClassUML);
+			console.log('Current nodes: ' + current.nodes);
+            // generateClassUML(current.nodes, workspace, currentParentClassUML, umlClassJson);
         }
     }
 }
 
+function createJsonCellForReturnJson(parsedObj, parentClassUML) {
+	var jsonCellToAdd = null;
+	
+	if (parsedObj.type === 'DeclarativeEntityRef') {
+		var dropdownField = parentBlock.getFieldValue('alternativs');
+		
+		if (parentBlock.tooltip !== 'DeclarativeEntityAction' || dropdownField !== ' ') {
+			generateUMLClassJsonCell(parsedObj.id, parsedObj.entityValue);
+        }
+	}
+}
+
 function addClassUMLToWorkspace(parsedObj, workspace, parentBlock) {
     var blockToAdd = null;
-
-    // Keep track of what part of the scenario we are working on.
-    // This is because we need to know where to add the 'And' blocks.
-    if (parsedObj.type === 'DeclarativeScenarioState') {
-        if (currentScenarioComponent === 'when') 
-            currentScenarioComponent = 'then';
-    }
-    else if (parsedObj.type === 'DeclarativeScenarioAction') {
-        if (currentScenarioComponent === 'given') 
-            currentScenarioComponent = 'when';
-    }
+	var umlClassJosnToAdd = null;
 
     // we have special cases: DeclarativeEntityRef, ActionRef, PropertyRef etc.
     // they require special blocks to be connected.

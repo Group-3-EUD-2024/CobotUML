@@ -1056,7 +1056,6 @@ function runScenario() {
   });
 }
 
-<<<<<<< HEAD
 function runExampleUml(){
 	var namespace = joint.shapes;
 
@@ -1095,7 +1094,3 @@ function runExampleUml(){
 	        link.target(rect2);
 	        link.addTo(umlWorkspace);
 }
-
-
-=======
->>>>>>> main
