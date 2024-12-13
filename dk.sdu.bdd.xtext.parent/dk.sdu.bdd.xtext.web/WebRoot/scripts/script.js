@@ -174,7 +174,7 @@ function onEntityEditorChange() {
 				{
 					// Parse the AST and create JointJS cells
 					umlWorkspace.clear();
-					createJointjsCells(response.ast, umlWorkspace, null);
+					createJointjsCells(response.ast, umlWorkspace);
 					
 					generateBlocksFromAst(response.ast, entityWorkspace, blockArray, 'entities');
 					
