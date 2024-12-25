@@ -1,3 +1,4 @@
+import updateTextEditorWithUmlData from './UmlForDSL.js';
 function toggleTheme() {
   document.body.classList.toggle("dark-mode");
   const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
@@ -535,20 +536,6 @@ function loadUMLDiagram(umlJson) {
             // Create shapes based on the dragged button
             let cell;
             switch (id) {
-				case 'drawSquare':
-	                cell = new namespace.standard.Rectangle({
-	                    position: { x: position.x, y: position.y },
-	                    size: { width: 80, height: 80 },
-	                    attrs: { polygon: { fill: '#e03c31' }, text: { text: 'Square', fill: 'white' } }
-	                });
-                	break;
-                case 'drawCircle':
-                    cell = new namespace.standard.Ellipse({
-                        position: { x: position.x, y: position.y },
-                        size: { width: 80, height: 80 },
-                        attrs: { circle: { fill: '#f6a600' }, text: { text: 'Circle', fill: 'white' } }
-                    });
-                    break; 
 				case 'drawClass':
 					// Define the custom shape with dia.MarkupJSON
 					cell = new namespace.standard.HeaderedRectangle();
@@ -562,83 +549,6 @@ function loadUMLDiagram(umlJson) {
 
             if (cell) {
                 graph.addCell(cell);
-				/*
-				const doubleLink = new namespace.standard.DoubleLink();
-				doubleLink.prop('source', { x: 500, y: 600 });
-				doubleLink.prop('target', { x: 450, y: 750 });
-				doubleLink.prop('vertices', [{ x: 500, y: 700 }]);
-				doubleLink.attr('root/title', 'shapes.standard.DoubleLink');
-				doubleLink.attr('line/stroke', '#30d0c6');
-				graph.addCell(doubleLink);
-				
-				const path = new namespace.standard.Path();
-				path.resize(100, 100);
-				path.position(50, 210);
-				path.attr('root/title', 'shapes.standard.Path');
-				path.attr('label/text', 'Path');
-				path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
-				graph.addCell(path);
-				const polyline = new namespace.standard.Polyline();
-				polyline.resize(100, 100);
-				polyline.position(450, 210);
-				polyline.attr('root/title', 'shapes.standard.Polyline');
-				polyline.attr('label/text', 'Polyline');
-				polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
-				graph.addCell(polyline);
-				const shadowLink = new namespace.standard.ShadowLink();
-				shadowLink.prop('source', { x: 550, y: 600 });
-				shadowLink.prop('target', { x: 500, y: 750 });
-				shadowLink.prop('vertices', [{ x: 550, y: 700 }]);
-				shadowLink.attr('root/title', 'shapes.standard.ShadowLink');
-				shadowLink.attr('line/stroke', '#5654a0');	
-				graph.addCell(shadowLink);	
-				const textBlock = new namespace.standard.TextBlock();
-				textBlock.resize(100, 100);
-				textBlock.position(250, 610);
-				textBlock.attr('root/title', 'shapes.standard.TextBlock');
-				textBlock.attr('body/fill', 'lightgray');
-				textBlock.attr('label/text', 'Hyper Text Markup Language');
-				// Styling of the label via `style` presentation attribute (i.e. CSS).
-				textBlock.attr('label/style/color', 'red');
-				graph.addCell(textBlock);
-				// Define a custom shape with SVG markup
-				const CustomSVGShape = joint.dia.Element.define('custom.SVGShape', {
-				    size: { width: 100, height: 100 },
-				    attrs: {
-				        body: {
-				            // Styles for the SVG path (like a star shape)
-				            fill: '#FFD700',
-				            stroke: '#FFA500',
-				            strokeWidth: 2,
-				        },
-				        label: {
-				            text: 'Custom SVG Shape',
-				            fontSize: 12,
-				            fill: '#000',
-				            refX: '50%',
-				            refY: '50%',
-				            textAnchor: 'middle',
-				            textVerticalAnchor: 'middle'
-				        }
-				    }
-				}, {
-				    markup: `
-				        <g class="body">
-				            <path d="M50 15 L61 35 L82 35 L66 50 L71 71 L50 60 L29 71 L34 50 L18 35 L39 35 Z"/>
-				            <text class="label"/>
-				        </g>
-				    `
-				});
-
-				// Create an instance and add it to the graph
-				const customSVGInstance = new CustomSVGShape();
-				customSVGInstance.position(250, 610); // Set the position of your choice
-				customSVGInstance.resize(100, 100); // Adjust size as needed
-				graph.addCell(customSVGInstance);
-				*/
-
-
-				
             }
 			exportDiagramAsJSON(graph);
         });
@@ -1069,6 +979,11 @@ function exportDiagramAsJSON(graph) {
 	        console.error("Error exporting diagram:", error);
 	    });
 	}
+	const editor = getCurrentAceEditor(); // Assuming this function gets the active Ace editor
+	const dslContent = updateTextEditorWithUmlData(json);
+	//entities.innerText = dslContent;
+	editor.setValue(dslContent);
+
     
     return jsonString;
 }
@@ -1143,44 +1058,4 @@ function runScenario() {
     }
   });
 }
-
-function runExampleUml(){
-	var namespace = joint.shapes;
-
-	        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
-
-	        var paper = new joint.dia.Paper({
-	            el: document.getElementById('xtext-editor-diagrams'),
-	            model: graph,
-	            width: 800,
-	            height: 800,
-	            gridSize: 1,
-	            cellViewNamespace: namespace
-	        });
-
-	        var rect = new joint.shapes.standard.Rectangle();
-	        rect.position(100, 30);
-	        rect.resize(100, 40);
-	        rect.attr({
-	            body: {
-	                fill: 'blue'
-	            },
-	            label: {
-	                text: 'Hello',
-	                fill: 'white'
-	            }
-	        });
-	        rect.addTo(graph);
-
-	        var rect2 = rect.clone();
-	        rect2.translate(300, 0);
-	        rect2.attr('label/text', 'World!');
-	        rect2.addTo(graph);
-
-	        var link = new joint.shapes.standard.Link();
-	        link.source(rect);
-	        link.target(rect2);
-	        link.addTo(graph);
-}
-
 
