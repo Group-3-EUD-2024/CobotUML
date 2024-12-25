@@ -11,15 +11,15 @@ export default function updateTextEditorWithUmlData(umlData) {
       // check attributes and methods from body text
       let bodyLines = bodyText.split('\n');
 	  // remove '-' and '+' incase they are added to class diagram
-      bodyLines.forEach(line => {
-        if (line.endsWith('()')) {
-          // It's a method
-          methods.push(line.replace('+ ', '').replace('()', ''));
-        } else {
-          // It's a property
-          properties.push(line.replace('- ', ''));
-        }
-      });
+	  bodyLines.forEach(line => {
+	    if (line.includes('(')) {
+	      // remove the parenthesis and arguments
+	      methods.push(line.replace('+ ', '').replace(/\(.*\)/, ''));
+	    } else {
+	      // It's a property
+	      properties.push(line.replace('- ', ''));
+	    }
+	  });
       
       // Build the DSL entity part
       dslContent += `declarative entity ${entityName} {\n`;
