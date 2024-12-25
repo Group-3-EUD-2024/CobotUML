@@ -1,3 +1,7 @@
+const stateDictionary = [
+  "ON", "OFF", "sensed", "sorted", "active", "inactive", 
+  "grapped", "released", "moving", "stopped", "idle", "engaged", "closed", "opened"
+];
 export default function updateTextEditorWithUmlData(umlData) {
   let dslContent = "model robotic_domain\n";  
   umlData.cells.forEach(cell => {
@@ -8,6 +12,7 @@ export default function updateTextEditorWithUmlData(umlData) {
       let entityName = headerText.trim();
 	  let methods = [];      
       let properties = [];
+	  let states = [];
       // check attributes and methods from body text
       let bodyLines = bodyText.split('\n');
 	  // remove '-' and '+' incase they are added to class diagram
@@ -17,18 +22,25 @@ export default function updateTextEditorWithUmlData(umlData) {
 	      methods.push(line.replace('+ ', '').replace(/\(.*\)/, ''));
 	    } else {
 	      // It's a property
-	      properties.push(line.replace('- ', ''));
+		  if (stateDictionary.includes(line)) {
+				states.push(line.replace('- ', ''));
+        	} else {
+				properties.push(line.replace('- ', ''));
+        	}
 	    }
 	  });
       
       // Build the DSL entity part
       dslContent += `declarative entity ${entityName} {\n`;
-	if (methods.length > 0) {
-    	dslContent += `  actions: ${methods.join(', ')}\n`;
-      }
-      if (properties.length > 0) {
+		if (states.length > 0) {
+          dslContent += `  states: ${states.join(', ')}\n`;
+        }
+		if (methods.length > 0) {
+	    	dslContent += `  actions: ${methods.join(', ')}\n`;
+      	}
+      	if (properties.length > 0) {
         dslContent += `  properties: ${properties.join(', ')}\n`;
-      }
+      	}
       dslContent += "}\n\n";
     }
   });
