@@ -1,3 +1,4 @@
+import updateTextEditorWithUmlData from './UmlForDSL.js';
 function toggleTheme() {
   document.body.classList.toggle("dark-mode");
   const theme = document.body.classList.contains("dark-mode") ? "dark" : "light";
@@ -978,6 +979,11 @@ function exportDiagramAsJSON(graph) {
 	        console.error("Error exporting diagram:", error);
 	    });
 	}
+	const editor = getCurrentAceEditor(); // Assuming this function gets the active Ace editor
+	const dslContent = updateTextEditorWithUmlData(json);
+	//entities.innerText = dslContent;
+	editor.setValue(dslContent);
+
     
     return jsonString;
 }
