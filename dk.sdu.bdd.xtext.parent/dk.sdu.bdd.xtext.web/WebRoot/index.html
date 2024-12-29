@@ -38,9 +38,13 @@
       <span id="entity-tab" style="cursor: pointer;" data-editor-id="xtext-editor-entities" class="tab">Entities</span>
       <span id="scenario-tab" style="cursor: pointer;" data-editor-id="xtext-editor-scenarios" class="tab">Scenarios</span>
       <span id="warning-message" style="color:red; visibility: hidden;">Entities should be defined first.</span>
-      <div class="block-uml-tab">
+	  <div class="block-uml-tab">
         <button type="button" id="blocks-tab" class="tab-button">Blocks</button>
         <button type="button" id="uml-tab" class="tab-button">UML</button>
+		<label class="switch">
+	      <input type="checkbox" id="umlToggle">
+	      <span class="slider round"></span>
+	  	</label>
       </div>
     </div>
 
@@ -118,6 +122,69 @@
         </div>
       </div>
     </div>
+	<div id="uml-container2" class="uml-editor" style="display: none;">
+	        <div id="uml-canvas"></div>
+	        <div id="toolbox">
+	          <div class="tool-container">
+	            <h4>Mouse options</h4>
+	            <div class="mouse-options">
+	              <img class="mouse-tool" src="/assets/icons/move-icon.png" draggable="false" id="movePaperMouse"></img>
+	              <img class="mouse-tool selected" src="assets/icons/arrow-icon.png" draggable="false" id="defaultMouse"></img>
+	            </div>
+	            <div class="hr"></div>
+	            <div class="tool class" draggable="true" id="drawClass">
+			      <div>
+				      Class
+			      </div>
+	              <div>
+						Body
+	              </div>
+		      	</div>
+	          </div>
+	          <div class="style-container">
+	            <h4>Selected Element settings</h4>
+	            <label for="fillColorPicker">Fill Color:</label>
+	            <input type="color" id="fillColorPicker" value="#000000">
+	            <label for="strokeColorPicker">Stroke Color:</label>
+	            <input type="color" id="strokeColorPicker" value="#000000">
+	            <label for="textInput">Text:</label>
+	            <textarea id="textAreaInput" placeholder="Enter text here"></textarea>
+	            <label for="textColorPicker">Text Color:</label>
+	            <input type="color" id="textColorPicker" value="#000000">
+	            <label for="strokeWidth">Stroke Width:</label>
+	            <input type="range" id="strokeWidth" min="1" max="10" value="2">
+	            <label for="widthSize">Width:</label>
+	            <input type="range" id="widthSize" min="20" max="1000" value="80">
+	            <label for="heightSize">Height:</label>
+	            <input type="range" id="heightSize" min="20" max="1000" value="80">
+	            <label for="rotation">Rotation:</label>
+	            <input type="range" id="rotation" min="0" max="360" value="0">
+				<label for="linkShape" style="display: none;">Link Shape:</label>
+			    <select id="linkShape" style="display: none;">
+					<option value="standard.Link">Standard Link</option>
+			        <option value="standard.DoubleLink">Double Link</option>
+			        <option value="standard.ShadowLink">Shadow Link</option>
+			    </select>
+				<!-- Add Router and Connector Type selection for links -->
+			    <label for="routerType" style="display: none;">Router Type:</label>
+			    <select id="routerType" style="display: none;">
+			        <option value="normal">Normal</option>
+			        <option value="orthogonal">Orthogonal</option>
+			        <option value="manhattan">Manhattan</option>
+			        <option value="metro">Metro</option>
+			        <option value="oneSide">One Side</option>
+			    </select>
+			    <label for="connectorType" style="display: none;">Connector Type:</label>
+			    <select id="connectorType" style="display: none;">
+			        <option value="normal">Normal</option>
+			        <option value="rounded">Rounded</option>
+			        <option value="smooth">Smooth</option>
+			        <option value="jumpover">Jumpover</option>
+			    </select>
+	          </div>
+	        </div>
+	      </div>
+	    </div>
     <div class= "generealButtons">
       <button id="save-button" value="Save" title="Save">Save</button>
       <input id="file-input" type="file" style="display: none;" />
