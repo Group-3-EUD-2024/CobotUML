@@ -44,12 +44,6 @@ function onDocumentChange() {
 	localStorage.setItem(editor.container.id + "fileContent", fileContent)
 }
 
-if ( document.getElementById("umlToggle").checked === true ) {
-	isUML = true;
-} else {
-	isUML = false;
-}
-
 function getSavedDocument(editor) {
 	let doc = editor.env.document.doc
 	let editorId = editor.container.id
@@ -75,10 +69,7 @@ let scenarioBlock = document.getElementById('blockly-editor2');
 let blockTab = document.getElementById('blocks-tab');
 let umlTab = document.getElementById('uml-tab');
 
-let entitiesUML = document.getElementById('uml-container');
-let scenarioUML = document.getElementById('uml-container2');
-let umlToggle = document.getElementById("myToggle");
-let isUML = false;
+let umlContainer = document.getElementById('uml-container');
 let warningMessage = document.getElementById('warning-message');
 let originalToolbox;
 let entitiesToolboxInjected = false;
@@ -154,13 +145,11 @@ function switchEditor(e) {
 		removeSelectionBorder(currentTab)
 		let editorId = e.target.dataset.editorId
 		
-		if (isUML) {
-			if (editorId == "xtext-editor-entities") { b = "uml-editor" }
-			else if (editorId == "xtext-editor-scenarios") { b = "uml-editor2" }
-		} else {
-			if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
-			else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }	
-		}
+		if (editorId == "xtext-editor-entities") { b = "uml-editor" }
+		else if (editorId == "xtext-editor-scenarios") { b = "uml-editor2" }
+		
+		// else if (editorId == "xtext-editor-entities") { b = "blockly-editor" }
+		// else if (editorId == "xtext-editor-scenarios") { b = "blockly-editor2" }	
 		
 		console.log(editorId)
 		let editor = document.getElementById(editorId)
